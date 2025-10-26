@@ -16,62 +16,52 @@
       <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
    </padding>
    
-   <!-- Header -->
-   <HBox alignment="CENTER_LEFT" spacing="20.0">
-      <Label text="My Profile" textAlignment="CENTER">
-         <font>
-            <Font name="System Bold" size="24.0" />
-         </font>
-      </Label>
-      <Button fx:id="logoutButton" onAction="#handleLogoutButtonAction" text="Logout" />
-   </HBox>
-   
-   <!-- Welcome Message -->
-   <Label fx:id="welcomeLabel" text="Welcome, User!" textAlignment="CENTER">
+   <!-- Welcome Label -->
+   <Label fx:id="welcomeLabel" text="My Profile">
       <font>
-         <Font size="16.0" />
+         <Font name="System Bold" size="24.0" />
       </font>
    </Label>
-   
-   <!-- Message Label -->
-   <Label fx:id="messageLabel" wrapText="true" />
    
    <!-- Profile Form -->
    <GridPane hgap="10.0" vgap="15.0">
       <columnConstraints>
-         <ColumnConstraints minWidth="100.0" prefWidth="120.0" />
-         <ColumnConstraints minWidth="200.0" prefWidth="250.0" />
+         <ColumnConstraints minWidth="100.0" />
+         <ColumnConstraints minWidth="200.0" />
       </columnConstraints>
       
       <!-- Age -->
-      <Label text="Age:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+      <Label text="Age:" GridPane.rowIndex="0" />
       <TextField fx:id="ageField" promptText="Enter your age" GridPane.columnIndex="1" GridPane.rowIndex="0" />
       
       <!-- Gender -->
-      <Label text="Gender:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-      <ComboBox fx:id="genderComboBox" promptText="Select gender" GridPane.columnIndex="1" GridPane.rowIndex="1" maxWidth="Infinity" />
+      <Label text="Gender:" GridPane.rowIndex="1" />
+      <ComboBox fx:id="genderComboBox" promptText="Select gender" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="200.0" />
       
       <!-- Height -->
-      <Label text="Height (cm):" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+      <Label text="Height (cm):" GridPane.rowIndex="2" />
       <TextField fx:id="heightField" promptText="Enter height in cm" GridPane.columnIndex="1" GridPane.rowIndex="2" />
       
       <!-- Weight -->
-      <Label text="Weight (kg):" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+      <Label text="Weight (kg):" GridPane.rowIndex="3" />
       <TextField fx:id="weightField" promptText="Enter weight in kg" GridPane.columnIndex="1" GridPane.rowIndex="3" />
       
       <!-- Fitness Level -->
-      <Label text="Fitness Level:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
-      <ComboBox fx:id="fitnessLevelComboBox" promptText="Select fitness level" GridPane.columnIndex="1" GridPane.rowIndex="4" maxWidth="Infinity" />
+      <Label text="Fitness Level:" GridPane.rowIndex="4" />
+      <ComboBox fx:id="fitnessLevelComboBox" promptText="Select fitness level" GridPane.columnIndex="1" GridPane.rowIndex="4" prefWidth="200.0" />
    </GridPane>
    
-   <!-- Save Button -->
-   <HBox spacing="10.0" alignment="CENTER_LEFT">
-      <Button fx:id="saveButton" onAction="#handleSaveButtonAction" text="Save Profile" styleClass="primary-button">
+   <!-- Message Label -->
+   <Label fx:id="messageLabel" />
+   
+   <!-- Buttons -->
+   <HBox spacing="10.0" alignment="CENTER">
+      <Button text="Save Profile" onAction="#handleSaveButtonAction" prefWidth="150.0">
          <font>
             <Font size="14.0" />
          </font>
       </Button>
-      <Button fx:id="dashboardButton" onAction="#handleDashboardButtonAction" text="Go to Dashboard" />
+      <Button text="Dashboard" onAction="#handleDashboardButtonAction" prefWidth="150.0" />
+      <Button text="Logout" onAction="#handleLogoutButtonAction" prefWidth="150.0" />
    </HBox>
-   
 </VBox>

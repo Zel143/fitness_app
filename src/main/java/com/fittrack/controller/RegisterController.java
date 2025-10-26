@@ -1,6 +1,5 @@
 package com.fittrack.controller;
 
-import javafx.fxml.FXML;
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
 import com.fittrack.util.SceneSwitcher;
@@ -18,7 +17,7 @@ public class RegisterController {
     @FXML private PasswordField confirmPasswordField;
     @FXML private Label messageLabel;
 
-    private DatabaseManager dbManager = new DatabaseManager();
+    private final DatabaseManager dbManager = new DatabaseManager();
 
     @FXML
     private void handleRegisterButtonAction(ActionEvent event) {
@@ -51,28 +50,45 @@ public class RegisterController {
         boolean success = dbManager.register(newUser, password);
 
         if (success) {
-            messageLabel.setStyle("-fx-text-fill: green;");
-            messageLabel.setText("Registration successful! Redirecting to login...");
-            try {
-                Thread.sleep(1500);
-                SceneSwitcher.switchScene(event, "Login.fxml");
-            } catch (Exception e) {
-                e.printStackTrace();
-                messageLabel.setStyle("-fx-text-fill: red;");
-                messageLabel.setText("Error: Could not redirect to login.");
-            }
+            showSuccess("Registration successful! Redirecting to login...");
+            // Use JavaFX animation timeline for delay instead of Thread.sleep
+            javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(1.5));
+            delay.setOnFinished(e -> {
+                try {
+                    SceneSwitcher.switchScene(event, "Login.fxml", "FitTrack - Login");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    showError("Error: Could not redirect to login.");
+                }
+            });
+            delay.play();
         } else {
-            messageLabel.setStyle("-fx-text-fill: red;");
-            messageLabel.setText("Registration failed! Username or email may already exist.");
+            showError("Registration failed! Username or email may already exist.");
         }
     }
 
     @FXML
     private void handleLoginLinkAction(ActionEvent event) {
         try {
-            SceneSwitcher.switchScene(event, "Login.fxml");
+            SceneSwitcher.switchScene(event, "Login.fxml", "FitTrack - Login");
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Helper method to display error messages
+     */
+    private void showError(String message) {
+        messageLabel.setStyle("-fx-text-fill: red;");
+        messageLabel.setText(message);
+    }
+
+    /**
+     * Helper method to display success messages
+     */
+    private void showSuccess(String message) {
+        messageLabel.setStyle("-fx-text-fill: green;");
+        messageLabel.setText(message);
     }
 }

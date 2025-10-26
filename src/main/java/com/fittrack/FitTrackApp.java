@@ -29,8 +29,8 @@ public class FitTrackApp extends Application {
 
         // Console output
         System.out.println("✓ FitTrack Application Started");
-        System.out.println("ℹ Using mock data (no database connection required)");
-        System.out.println("ℹ Test login: username = 'test', password = 'test'");
+        System.out.println("✓ Using REAL DATABASE (MySQL)");
+        System.out.println("ℹ Register a new account or login with existing credentials");
     }
 
     @Override

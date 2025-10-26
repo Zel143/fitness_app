@@ -1,6 +1,5 @@
 package com.fittrack.controller;
 
-import javafx.fxml.FXML;
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
 import com.fittrack.util.SceneSwitcher;
@@ -28,8 +27,8 @@ public class ProfileController {
     @FXML private TextField weightField;
     @FXML private ComboBox<String> fitnessLevelComboBox;
 
-    // Database manager - NOW ACTIVE!
-    private DatabaseManager dbManager = new DatabaseManager();
+    // Database manager
+    private final DatabaseManager dbManager = new DatabaseManager();
 
     private User currentUser;
 
@@ -86,7 +85,10 @@ public class ProfileController {
         }
     }
 
-    
+    /**
+     * Handle the Save button click
+     * Saves profile data to the database
+     */
     @FXML
     private void handleSaveButtonAction(ActionEvent event) {
         try {
@@ -124,7 +126,7 @@ public class ProfileController {
             String gender = genderComboBox.getValue();
             String fitnessLevel = fitnessLevelComboBox.getValue();
 
-            // --- REAL LOGIC (NOW ACTIVE) ---
+            // Save to database
             if (currentUser != null) {
                 currentUser.setAge(age);
                 currentUser.setGender(gender);

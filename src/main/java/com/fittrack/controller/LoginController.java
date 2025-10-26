@@ -1,6 +1,5 @@
 package com.fittrack.controller;
 
-import javafx.fxml.FXML;
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
 import com.fittrack.util.SceneSwitcher;
@@ -45,12 +44,14 @@ public class LoginController {
         }
     }
 
+    // Handles the "Register here" link click
     @FXML
     private void handleRegisterLinkAction(ActionEvent event) {
         try {
-            SceneSwitcher.switchScene(event, "Register.fxml");
+            SceneSwitcher.switchScene(event, "Register.fxml", "FitTrack - Register");
         } catch (Exception e) {
             e.printStackTrace();
+            errorLabel.setText("Error: Could not load registration page.");
         }
     }
 }
