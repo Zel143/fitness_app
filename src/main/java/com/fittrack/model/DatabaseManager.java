@@ -283,7 +283,6 @@ public class DatabaseManager {
                 goal.userId = rs.getInt("user_id");
                 goal.goalType = rs.getString("goal_type");
                 goal.targetValue = rs.getObject("target_value", Double.class);
-                goal.targetUnit = rs.getString("target_unit");
                 goal.targetDate = rs.getObject("target_date", LocalDate.class);
                 goal.status = rs.getString("status");
                 goals.add(goal);

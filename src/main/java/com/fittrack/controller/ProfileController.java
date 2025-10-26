@@ -86,10 +86,7 @@ public class ProfileController {
         }
     }
 
-    /**
-     * Handle the Save button click
-     * Uses MOCK DATA for testing without database
-     */
+    
     @FXML
     private void handleSaveButtonAction(ActionEvent event) {
         try {
