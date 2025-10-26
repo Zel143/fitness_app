@@ -2,18 +2,9 @@ package com.fittrack.model;
 
 import java.time.LocalDate;
 
-/**
- * User - Stores user account and profile information
- * 
- * Simple usage:
- *   User user = User.create("john", "john@email.com");
- *   user.age = 25;
- *   user.height = 175.0;
- *   user.weight = 70.0;
- */
 public class User {
     
-    // === Public Fields - Access directly! ===
+    // Public Fields
     public int userId;
     public String username;
     public String email;
@@ -22,24 +13,42 @@ public class User {
     
     // Profile information
     public Integer age;
-    public String gender;          // "Male", "Female", "Other"
-    public Double height;          // in cm
-    public Double weight;          // in kg
-    public String fitnessLevel;    // "beginner", "intermediate", "advanced"
+    public String gender;
+    public Double height;
+    public Double weight;
+    public String fitnessLevel;
     
-    // === Constructors ===
-    
-    // Create empty user with today's date
+    // Constructors
     public User() {
         this.createdAt = LocalDate.now();
     }
     
-    // === Helper Methods ===
+    // Getters and Setters (REQUIRED for DatabaseManager)
+    public int getUserId() { return userId; }
+    public void setUserId(int userId) { this.userId = userId; }
     
-    /**
-     * Quick way to create a user
-     * Example: User user = User.create("john", "john@email.com");
-     */
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    
+    public Integer getAge() { return age; }
+    public void setAge(Integer age) { this.age = age; }
+    
+    public String getGender() { return gender; }
+    public void setGender(String gender) { this.gender = gender; }
+    
+    public Double getHeight() { return height; }
+    public void setHeight(Double height) { this.height = height; }
+    
+    public Double getWeight() { return weight; }
+    public void setWeight(Double weight) { this.weight = weight; }
+    
+    public String getFitnessLevel() { return fitnessLevel; }
+    public void setFitnessLevel(String fitnessLevel) { this.fitnessLevel = fitnessLevel; }
+    
+    // Helper Methods
     public static User create(String username, String email) {
         User user = new User();
         user.username = username;
@@ -47,20 +56,6 @@ public class User {
         return user;
     }
     
-    /**
-     * Create a user with password hash
-     */
-    public static User createWithPassword(String username, String email, String passwordHash) {
-        User user = create(username, email);
-        user.passwordHash = passwordHash;
-        return user;
-    }
-    
-    /**
-     * Calculate BMI (Body Mass Index)
-     * Formula: weight (kg) / (height (m) * height (m))
-     * Returns 0.0 if height or weight not set
-     */
     public double calculateBMI() {
         if (height == null || weight == null || height == 0) {
             return 0.0;
@@ -69,10 +64,6 @@ public class User {
         return weight / (heightInMeters * heightInMeters);
     }
     
-    /**
-     * Get BMI category
-     * Returns: "Underweight", "Normal", "Overweight", or "Obese"
-     */
     public String getBMICategory() {
         double bmi = calculateBMI();
         if (bmi == 0.0) return "Unknown";
@@ -82,19 +73,9 @@ public class User {
         return "Obese";
     }
     
-    /**
-     * Check if profile is complete
-     */
     public boolean hasCompleteProfile() {
         return age != null && gender != null && height != null && 
                weight != null && fitnessLevel != null;
-    }
-    
-    /**
-     * Check if user is a beginner
-     */
-    public boolean isBeginner() {
-        return "beginner".equalsIgnoreCase(fitnessLevel);
     }
     
     @Override

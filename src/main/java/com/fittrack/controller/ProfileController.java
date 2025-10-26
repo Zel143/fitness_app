@@ -1,5 +1,7 @@
 package com.fittrack.controller;
 
+import javafx.fxml.FXML;
+import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
@@ -14,7 +16,7 @@ import java.io.IOException;
 
 /**
  * ProfileController - Controller for the Profile.fxml view
- * Handles user profile management with mock data (no database required)
+ * Handles user profile management with database integration
  */
 public class ProfileController {
 
@@ -26,8 +28,8 @@ public class ProfileController {
     @FXML private TextField weightField;
     @FXML private ComboBox<String> fitnessLevelComboBox;
 
-    // Database manager would go here (commented out until database is ready)
-    // private DatabaseManager dbManager = new DatabaseManager();
+    // Database manager - NOW ACTIVE!
+    private DatabaseManager dbManager = new DatabaseManager();
 
     private User currentUser;
 
@@ -125,33 +127,8 @@ public class ProfileController {
             String gender = genderComboBox.getValue();
             String fitnessLevel = fitnessLevelComboBox.getValue();
 
-            // --- THIS IS YOUR MOCK LOGIC ---
-            // Update the user object in memory (no database)
-            
+            // --- REAL LOGIC (NOW ACTIVE) ---
             if (currentUser != null) {
-                currentUser.setAge(age);
-                currentUser.setGender(gender);
-                currentUser.setHeight(height);
-                currentUser.setWeight(weight);
-                currentUser.setFitnessLevel(fitnessLevel);
-
-                System.out.println("✓ Mock Profile Update Successful!");
-                System.out.println("  Updated user: " + currentUser);
-
-                // Update the SessionManager (already done since we're modifying the same object)
-                SessionManager.getInstance().setLoggedInUser(currentUser);
-
-                // Show success message
-                showSuccess("Profile saved successfully!");
-            } else {
-                showError("No user logged in.");
-            }
-            
-            // --- THIS IS YOUR REAL LOGIC (Commented out) ---
-            // You will add this back AFTER the SQL problem is fixed.
-            
-            /*
-            try {
                 currentUser.setAge(age);
                 currentUser.setGender(gender);
                 currentUser.setHeight(height);
@@ -163,15 +140,13 @@ public class ProfileController {
                 if (success) {
                     SessionManager.getInstance().setLoggedInUser(currentUser);
                     showSuccess("Profile saved successfully!");
+                    System.out.println("✓ Profile updated in database!");
                 } else {
                     showError("Failed to save profile. Please try again.");
                 }
-                
-            } catch (SQLException e) {
-                showError("Database error: " + e.getMessage());
-                e.printStackTrace();
+            } else {
+                showError("No user logged in.");
             }
-            */
 
         } catch (NumberFormatException e) {
             showError("Please enter valid numbers for age, height, and weight.");

@@ -5,7 +5,7 @@ import com.fittrack.model.User;
 /**
  * SessionManager - Singleton class to manage the logged-in user session
  * This class maintains the current user's state throughout the application
- */
+ */ 
 public class SessionManager {
     
     // Singleton instance

@@ -1,5 +1,6 @@
 package com.fittrack.controller;
 
+import javafx.fxml.FXML;
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
 import com.fittrack.util.SceneSwitcher;
@@ -11,16 +12,11 @@ import javafx.scene.control.TextField;
 
 public class RegisterController {
 
-    @FXML
-    private TextField usernameField;
-    @FXML
-    private TextField emailField;
-    @FXML
-    private PasswordField passwordField;
-    @FXML
-    private PasswordField confirmPasswordField;
-    @FXML
-    private Label errorLabel;
+    @FXML private TextField usernameField;
+    @FXML private TextField emailField;
+    @FXML private PasswordField passwordField;
+    @FXML private PasswordField confirmPasswordField;
+    @FXML private Label messageLabel;
 
     private DatabaseManager dbManager = new DatabaseManager();
 
@@ -31,42 +27,50 @@ public class RegisterController {
         String password = passwordField.getText();
         String confirmPassword = confirmPasswordField.getText();
 
-        // Basic validation
+        // Validation
         if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            errorLabel.setText("Please fill in all fields.");
+            messageLabel.setStyle("-fx-text-fill: red;");
+            messageLabel.setText("Please fill in all fields.");
             return;
         }
         if (!password.equals(confirmPassword)) {
-            errorLabel.setText("Passwords do not match.");
+            messageLabel.setStyle("-fx-text-fill: red;");
+            messageLabel.setText("Passwords do not match.");
+            return;
+        }
+        if (password.length() < 6) {
+            messageLabel.setStyle("-fx-text-fill: red;");
+            messageLabel.setText("Password must be at least 6 characters.");
             return;
         }
 
-        // Create user object
-        User newUser = new User();
-        newUser.username = username;
-        newUser.email = email;
+        // Create user
+        User newUser = User.create(username, email);
 
-        // Attempt to register
+        // Register in database
         boolean success = dbManager.register(newUser, password);
 
         if (success) {
-            // Registration successful, switch to login
+            messageLabel.setStyle("-fx-text-fill: green;");
+            messageLabel.setText("Registration successful! Redirecting to login...");
             try {
-                // You could add a success message on the login page
-                SceneSwitcher.switchScene(event, "/com/fittrack/view/Login.fxml");
+                Thread.sleep(1500);
+                SceneSwitcher.switchScene(event, "Login.fxml");
             } catch (Exception e) {
                 e.printStackTrace();
+                messageLabel.setStyle("-fx-text-fill: red;");
+                messageLabel.setText("Error: Could not redirect to login.");
             }
         } else {
-            // Registration failed (e.g., username/email already exists)
-            errorLabel.setText("Registration failed. Username or email may already be in use.");
+            messageLabel.setStyle("-fx-text-fill: red;");
+            messageLabel.setText("Registration failed! Username or email may already exist.");
         }
     }
 
     @FXML
-    private void openLoginScene(ActionEvent event) {
+    private void handleLoginLinkAction(ActionEvent event) {
         try {
-            SceneSwitcher.switchScene(event, "/com/fittrack/view/Login.fxml");
+            SceneSwitcher.switchScene(event, "Login.fxml");
         } catch (Exception e) {
             e.printStackTrace();
         }

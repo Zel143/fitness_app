@@ -1,4 +1,5 @@
 package com.fittrack.controller;
+import javafx.fxml.FXML;
 
 import com.fittrack.model.User;
 import com.fittrack.util.SceneSwitcher;
