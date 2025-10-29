@@ -273,7 +273,7 @@ scene.getStylesheets().add(getClass().getResource("/com/fittrack/view/styles.css
 | Problem | Solution |
 |---------|----------|
 | JavaFX classes not found | Run `mvn clean install` |
-| Application won't start | Check Java version: `java -version` (need 11+) |
+| Application won't start | Check Java version: `java -version` (need 21+) |
 | FXML file not loading | Verify path: `/com/fittrack/view/Login.fxml` |
 | Compilation errors | Run `mvn clean compile` |
 | Changes not appearing | Run `mvn clean javafx:run` |
@@ -506,7 +506,7 @@ The AI assistant created a **complete, production-ready JavaFX MVC application**
   - JavaFX 17.0.2 dependencies (controls, fxml)
   - MySQL connector (commented out for future use)
   - BCrypt password hashing (commented out for future use)
-  - Maven Compiler Plugin (Java 11 target)
+  - Maven Compiler Plugin (Java 21 target)
   - JavaFX Maven Plugin with main class configuration
   - Maven Shade Plugin for executable JAR creation
 

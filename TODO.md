@@ -253,7 +253,7 @@
 - [JavaFX Documentation](https://openjfx.io/)
 - [Scene Builder Guide](https://docs.oracle.com/javafx/scenebuilder/)
 - [Maven Docs](https://maven.apache.org/guides/)
-- [Java 11 API](https://docs.oracle.com/en/java/javase/11/docs/api/)
+- [Java 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/)
 
 ---
 

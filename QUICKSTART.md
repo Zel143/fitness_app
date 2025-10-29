@@ -17,7 +17,7 @@ java -version
 
 You should see:
 - Maven 3.6+
-- Java 11+
+- Java 21+
 
 ---
 

@@ -43,7 +43,7 @@ db_fittrack/
 ## 🚀 How to Run
 
 ### Prerequisites
-- Java 11 or higher
+- Java 21 or higher (LTS)
 - Maven 3.6 or higher
 
 ### Running the Application
@@ -170,7 +170,7 @@ if (user != null) {
 **Solution:** Run `mvn clean install` to download dependencies
 
 ### Issue: Can't run application
-**Solution:** Make sure you're using Java 11+ and run `mvn javafx:run`
+**Solution:** Make sure you're using Java 21+ and run `mvn javafx:run`
 
 ### Issue: FXML file not loading
 **Solution:** Check that the file path in the controller matches the actual file location
