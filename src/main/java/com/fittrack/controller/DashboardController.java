@@ -1,13 +1,14 @@
 package com.fittrack.controller;
 
+import java.io.IOException;
+
 import com.fittrack.model.User;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-
-import java.io.IOException;
 
 /**
  * DashboardController - Controller for the Dashboard.fxml view
@@ -90,13 +91,11 @@ public class DashboardController {
      */
     @FXML
     private void handleGoalsButtonAction(ActionEvent event) {
-        System.out.println("ℹ Goals feature - Coming soon!");
-        // TODO: Create Goals.fxml and GoalsController
-        // try {
-        //     SceneSwitcher.switchScene(event, "Goals.fxml", "FitTrack - My Goals");
-        // } catch (IOException e) {
-        //     System.err.println("✗ Error loading Goals: " + e.getMessage());
-        // }
+        try {
+            SceneSwitcher.switchScene(event, "Goals.fxml", "FitTrack - My Goals");
+        } catch (IOException e) {
+            System.err.println("✗ Error loading Goals: " + e.getMessage());
+        }
     }
 
     /**
@@ -104,13 +103,11 @@ public class DashboardController {
      */
     @FXML
     private void handleWorkoutPlansButtonAction(ActionEvent event) {
-        System.out.println("ℹ Workout Plans feature - Coming soon!");
-        // TODO: Create WorkoutPlans.fxml and WorkoutPlansController
-        // try {
-        //     SceneSwitcher.switchScene(event, "WorkoutPlans.fxml", "FitTrack - Workout Plans");
-        // } catch (IOException e) {
-        //     System.err.println("✗ Error loading Workout Plans: " + e.getMessage());
-        // }
+        try {
+            SceneSwitcher.switchScene(event, "WorkoutPlans.fxml", "FitTrack - Workout Plans");
+        } catch (IOException e) {
+            System.err.println("✗ Error loading Workout Plans: " + e.getMessage());
+        }
     }
 
     /**
@@ -118,13 +115,23 @@ public class DashboardController {
      */
     @FXML
     private void handleProgressButtonAction(ActionEvent event) {
-        System.out.println("ℹ Progress Tracking feature - Coming soon!");
-        // TODO: Create Progress.fxml and ProgressController
-        // try {
-        //     SceneSwitcher.switchScene(event, "Progress.fxml", "FitTrack - Track Progress");
-        // } catch (IOException e) {
-        //     System.err.println("✗ Error loading Progress: " + e.getMessage());
-        // }
+        try {
+            SceneSwitcher.switchScene(event, "Progress.fxml", "FitTrack - Track Progress");
+        } catch (IOException e) {
+            System.err.println("✗ Error loading Progress: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle the Food Log button click
+     */
+    @FXML
+    private void handleFoodLogButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "FoodLog.fxml", "FitTrack - Food Log");
+        } catch (IOException e) {
+            System.err.println("✗ Error loading Food Log: " + e.getMessage());
+        }
     }
 
     /**

@@ -75,6 +75,12 @@
                </font>
             </Button>
             
+            <Button text="Food Log" onAction="#handleFoodLogButtonAction" prefWidth="250.0" prefHeight="40.0">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Button>
+            
             <Button text="Logout" onAction="#handleLogoutButtonAction" prefWidth="250.0" prefHeight="40.0" style="-fx-background-color: #f44336; -fx-text-fill: white;">
                <font>
                   <Font size="14.0" />
