@@ -1,13 +1,18 @@
 package com.fittrack.controller;
 
+import java.io.IOException;
+
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
 import com.fittrack.util.SceneSwitcher;
+
+import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.util.Duration;
 
 public class RegisterController {
 
@@ -52,13 +57,12 @@ public class RegisterController {
         if (success) {
             showSuccess("Registration successful! Redirecting to login...");
             // Use JavaFX animation timeline for delay instead of Thread.sleep
-            javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(1.5));
+            PauseTransition delay = new PauseTransition(Duration.seconds(1.5));
             delay.setOnFinished(e -> {
                 try {
                     SceneSwitcher.switchScene(event, "Login.fxml", "FitTrack - Login");
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    showError("Error: Could not redirect to login.");
+                } catch (IOException ex) {
+                    showError("Error: Could not redirect to login. " + ex.getMessage());
                 }
             });
             delay.play();
@@ -71,8 +75,8 @@ public class RegisterController {
     private void handleLoginLinkAction(ActionEvent event) {
         try {
             SceneSwitcher.switchScene(event, "Login.fxml", "FitTrack - Login");
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            showError("Error: Could not load login page. " + e.getMessage());
         }
     }
 

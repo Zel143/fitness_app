@@ -1,9 +1,12 @@
 package com.fittrack.controller;
 
+import java.io.IOException;
+
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -16,7 +19,7 @@ public class LoginController {
     @FXML private PasswordField passwordField;
     @FXML private Label errorLabel;
 
-    private DatabaseManager dbManager = new DatabaseManager();
+    private final DatabaseManager dbManager = new DatabaseManager();
 
     @FXML
     private void handleLoginButtonAction(ActionEvent event) {
@@ -35,9 +38,8 @@ public class LoginController {
             SessionManager.getInstance().setLoggedInUser(user);
             try {
                 SceneSwitcher.switchScene(event, "Dashboard.fxml");
-            } catch (Exception e) {
-                e.printStackTrace();
-                errorLabel.setText("Error: Could not load dashboard.");
+            } catch (IOException e) {
+                errorLabel.setText("Error: Could not load dashboard. " + e.getMessage());
             }
         } else {
             errorLabel.setText("Invalid username or password.");
@@ -49,9 +51,8 @@ public class LoginController {
     private void handleRegisterLinkAction(ActionEvent event) {
         try {
             SceneSwitcher.switchScene(event, "Register.fxml", "FitTrack - Register");
-        } catch (Exception e) {
-            e.printStackTrace();
-            errorLabel.setText("Error: Could not load registration page.");
+        } catch (IOException e) {
+            errorLabel.setText("Error: Could not load registration page. " + e.getMessage());
         }
     }
 }

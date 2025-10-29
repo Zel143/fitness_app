@@ -1,15 +1,13 @@
 package com.fittrack.util;
 
-import javafx.event.ActionEvent;
+import java.io.IOException;
+
 import javafx.event.Event;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
-
-import java.io.IOException;
 
 /**
  * SceneSwitcher - Utility class for switching between FXML scenes

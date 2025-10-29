@@ -42,14 +42,14 @@
    <!-- Confirm Password Field -->
    <VBox spacing="5.0">
       <Label text="Confirm Password:" />
-      <PasswordField fx:id="confirmPasswordField" promptText="Re-enter password" />
+      <PasswordField fx:id="confirmPasswordField" promptText="Re-enter password" onAction="#handleRegisterButtonAction" />
    </VBox>
    
    <!-- Message Label -->
    <Label fx:id="messageLabel" />
    
    <!-- Register Button -->
-   <Button text="Create Account" onAction="#handleRegisterButtonAction" prefWidth="200.0">
+   <Button fx:id="registerButton" text="Create Account" onAction="#handleRegisterButtonAction" prefWidth="200.0" defaultButton="true">
       <font>
          <Font size="14.0" />
       </font>
