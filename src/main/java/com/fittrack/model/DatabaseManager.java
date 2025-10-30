@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+
 import org.mindrot.jbcrypt.BCrypt;
 
 public class DatabaseManager {
@@ -248,7 +249,7 @@ public class DatabaseManager {
             + "VALUES(?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setInt(1, goal.userId);
             pstmt.setString(2, goal.goalType);
             pstmt.setObject(3, goal.targetValue);
@@ -256,11 +257,22 @@ public class DatabaseManager {
             pstmt.setObject(5, goal.targetDate);
             pstmt.setString(6, goal.status);
             
-            pstmt.executeUpdate();
-            System.out.println("✓ Goal saved for user ID: " + goal.userId);
-            return true;
+            int rowsAffected = pstmt.executeUpdate();
+            
+            // Retrieve the generated goal_id
+            if (rowsAffected > 0) {
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        goal.goalId = generatedKeys.getInt(1);
+                    }
+                }
+            }
+            
+            System.out.println("✓ Goal saved for user ID: " + goal.userId + " with goal ID: " + goal.goalId);
+            return rowsAffected > 0;
         } catch (SQLException e) {
             System.err.println("✗ Save goal error: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -270,7 +282,7 @@ public class DatabaseManager {
      */
     public java.util.List<Goal> getGoals(int userId) {
         java.util.List<Goal> goals = new java.util.ArrayList<>();
-        String sql = "SELECT * FROM goals WHERE user_id = ?";
+        String sql = "SELECT * FROM goals WHERE user_id = ? ORDER BY created_at DESC";
 
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -283,14 +295,38 @@ public class DatabaseManager {
                 goal.userId = rs.getInt("user_id");
                 goal.goalType = rs.getString("goal_type");
                 goal.targetValue = rs.getObject("target_value", Double.class);
+                goal.targetUnit = rs.getString("target_unit");
                 goal.targetDate = rs.getObject("target_date", LocalDate.class);
                 goal.status = rs.getString("status");
+                
+                // Also get created_at if needed
+                java.sql.Timestamp timestamp = rs.getTimestamp("created_at");
+                if (timestamp != null) {
+                    goal.createdAt = timestamp.toLocalDateTime().toLocalDate();
+                }
+                
                 goals.add(goal);
             }
             System.out.println("✓ Retrieved " + goals.size() + " goals for user ID: " + userId);
         } catch (SQLException e) {
             System.err.println("✗ Get goals error: " + e.getMessage());
+            e.printStackTrace();
         }
         return goals;
+    }
+
+    /**
+     * Test database connection
+     */
+    public boolean testConnection() {
+        try (Connection conn = connect()) {
+            if (conn != null && !conn.isClosed()) {
+                System.out.println("✓ Database connection test: SUCCESS");
+                return true;
+            }
+        } catch (SQLException e) {
+            System.err.println("✗ Database connection test FAILED: " + e.getMessage());
+        }
+        return false;
     }
 }

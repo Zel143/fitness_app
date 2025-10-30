@@ -1,19 +1,27 @@
 package com.fittrack.controller;
 
+import java.io.IOException;
+import java.time.LocalDate;
+
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.Goal;
 import com.fittrack.model.User;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-
-import java.io.IOException;
-import java.time.LocalDate;
 
 /**
  * GoalsController - Controller for the Goals.fxml view
@@ -45,6 +53,12 @@ public class GoalsController {
     @FXML
     public void initialize() {
         currentUser = SessionManager.getInstance().getLoggedInUser();
+
+        // Test database connection
+        if (!dbManager.testConnection()) {
+            showError("Database connection failed!");
+            return;
+        }
 
         if (currentUser != null) {
             welcomeLabel.setText(currentUser.getUsername() + "'s Fitness Goals");
@@ -152,11 +166,16 @@ public class GoalsController {
         goal.targetDate = targetDate;
         goal.status = "active";
 
+        System.out.println("ℹ Attempting to save goal for user: " + currentUser.getUserId());
+        System.out.println("ℹ Goal details: " + goalType + ", " + targetValue + " " + targetUnit);
+
         if (dbManager.saveGoal(goal)) {
+            System.out.println("✓ Goal saved with ID: " + goal.goalId);
             showSuccess("Goal added successfully!");
             clearForm();
             loadGoals();
         } else {
+            System.err.println("✗ Failed to save goal to database");
             showError("Failed to add goal. Please try again.");
         }
     }

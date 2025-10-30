@@ -18,13 +18,15 @@ public class FitTrackApp extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/fittrack/view/Login.fxml"));
         Parent root = loader.load();
 
-        // Create the scene
-        Scene scene = new Scene(root, 400, 500);
+        // Create the scene with larger dimensions
+        Scene scene = new Scene(root, 800, 600);
 
         // Configure the stage
         primaryStage.setTitle("FitTrack - Login");
         primaryStage.setScene(scene);
-        primaryStage.setResizable(false);
+        primaryStage.setResizable(true);  // Allow resizing
+        primaryStage.setMinWidth(600);    // Minimum width
+        primaryStage.setMinHeight(500);   // Minimum height
         primaryStage.show();
 
         // Console output
