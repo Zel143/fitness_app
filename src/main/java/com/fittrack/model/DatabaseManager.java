@@ -299,7 +299,7 @@ public class DatabaseManager {
                 goal.targetDate = rs.getObject("target_date", LocalDate.class);
                 goal.status = rs.getString("status");
                 
-                // Also get created_at if needed
+                // Get created_at timestamp
                 java.sql.Timestamp timestamp = rs.getTimestamp("created_at");
                 if (timestamp != null) {
                     goal.createdAt = timestamp.toLocalDateTime().toLocalDate();
@@ -313,6 +313,72 @@ public class DatabaseManager {
             e.printStackTrace();
         }
         return goals;
+    }
+
+    /**
+     * Retrieves all workout logs for a specific user.
+     */
+    public java.util.List<WorkoutLog> getWorkoutLogs(int userId) {
+        java.util.List<WorkoutLog> logs = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM workout_log WHERE user_id = ? ORDER BY date DESC";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                WorkoutLog log = new WorkoutLog();
+                log.setId(rs.getInt("log_id"));
+                log.setUserId(rs.getInt("user_id"));
+                log.setWorkoutName(rs.getString("exercise_id")); // Map as needed
+                log.setSets(rs.getInt("sets"));
+                log.setReps(rs.getInt("reps"));
+                log.setWeightUsed(rs.getDouble("weight_used"));
+                log.setDate(rs.getObject("date", LocalDate.class));
+                logs.add(log);
+            }
+            System.out.println("✓ Retrieved " + logs.size() + " workout logs for user ID: " + userId);
+        } catch (SQLException e) {
+            System.err.println("✗ Get workout logs error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return logs;
+    }
+
+    /**
+     * Saves a new workout log.
+     */
+    public boolean saveWorkoutLog(WorkoutLog log) {
+        String sql = "INSERT INTO workout_log(user_id, exercise_id, sets, reps, weight_used, date) "
+            + "VALUES(?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setInt(1, log.getUserId());
+            pstmt.setInt(2, 1); // You'll need to map exercise name to exercise_id
+            pstmt.setInt(3, log.getSets());
+            pstmt.setInt(4, log.getReps());
+            pstmt.setDouble(5, log.getWeightUsed());
+            pstmt.setObject(6, log.getDate());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        log.setId(generatedKeys.getInt(1));
+                    }
+                }
+            }
+            
+            System.out.println("✓ Workout log saved with ID: " + log.getId());
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("✗ Save workout log error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**

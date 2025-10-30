@@ -15,12 +15,12 @@ public class Goal {
     // === Public Fields - Access directly! ===
     public int goalId;
     public int userId;
-    public String goalType;      // "weight_loss", "muscle_gain", "endurance", "flexibility"
+    public String goalType;
     public Double targetValue;
-    public String targetUnit;    // "kg", "minutes", "reps", etc.
+    public String targetUnit;
     public LocalDate targetDate;
     public LocalDate createdAt;
-    public String status;        // "active", "completed", "abandoned"
+    public String status;
     
     // === Constructors ===
     
@@ -117,4 +117,30 @@ public class Goal {
     public String toString() {
         return getDisplayText() + " (by " + targetDate + ")";
     }
+    
+    // === Getters for JavaFX PropertyValueFactory ===
+    
+    public int getGoalId() { return goalId; }
+    public void setGoalId(int goalId) { this.goalId = goalId; }
+    
+    public int getUserId() { return userId; }
+    public void setUserId(int userId) { this.userId = userId; }
+    
+    public String getGoalType() { return goalType; }
+    public void setGoalType(String goalType) { this.goalType = goalType; }
+    
+    public Double getTargetValue() { return targetValue; }
+    public void setTargetValue(Double targetValue) { this.targetValue = targetValue; }
+    
+    public String getTargetUnit() { return targetUnit; }
+    public void setTargetUnit(String targetUnit) { this.targetUnit = targetUnit; }
+    
+    public LocalDate getTargetDate() { return targetDate; }
+    public void setTargetDate(LocalDate targetDate) { this.targetDate = targetDate; }
+    
+    public LocalDate getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDate createdAt) { this.createdAt = createdAt; }
+    
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }
