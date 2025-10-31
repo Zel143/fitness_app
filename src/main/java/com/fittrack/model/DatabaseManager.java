@@ -135,7 +135,7 @@ public class DatabaseManager {
             "CREATE TABLE IF NOT EXISTS food_log (\n"
             + "    food_log_id INT AUTO_INCREMENT PRIMARY KEY,\n"
             + "    user_id INT NOT NULL,\n"
-            + "    food_library_id INT NOT NULL,\n"
+            + "    food_library_id INT,\n"
             + "    food_name VARCHAR(100) NOT NULL,\n"
             + "    calories INT NOT NULL,\n"
             + "    protein DOUBLE,\n"
@@ -143,7 +143,7 @@ public class DatabaseManager {
             + "    fats DOUBLE,\n"
             + "    date DATE NOT NULL,\n"
             + "    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,\n"
-            + "    FOREIGN KEY (food_library_id) REFERENCES food_library(food_id) ON DELETE CASCADE\n"
+            + "    FOREIGN KEY (food_library_id) REFERENCES food_library(food_id) ON DELETE SET NULL\n"
             + ") ENGINE=InnoDB;"
         };
 
@@ -553,8 +553,8 @@ public class DatabaseManager {
      * Saves a new food log entry.
      */
     public boolean saveFoodLog(FoodLog log) {
-        String sql = "INSERT INTO food_log(user_id, food_library_id, food_name, calories, protein, carbs, fats, date) "
-            + "VALUES(?, 1, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO food_log(user_id, food_name, calories, protein, carbs, fats, date) "
+            + "VALUES(?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
