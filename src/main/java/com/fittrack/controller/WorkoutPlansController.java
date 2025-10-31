@@ -1,20 +1,29 @@
 package com.fittrack.controller;
 
+import java.io.IOException;
+
+import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
 import com.fittrack.model.WorkoutPlan;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-
-import java.io.IOException;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 
 /**
  * WorkoutPlansController - Controller for the WorkoutPlans.fxml view
- * Manages user workout plans
+ * Manages user workout plans with database integration
  */
 public class WorkoutPlansController {
 
@@ -28,6 +37,8 @@ public class WorkoutPlansController {
     @FXML private TextField durationWeeksField;
     @FXML private Label messageLabel;
 
+    // ✅ ADD THIS - This was missing!
+    private final DatabaseManager dbManager = new DatabaseManager();
     private User currentUser;
     private final ObservableList<WorkoutPlan> plansList = FXCollections.observableArrayList();
 
@@ -40,6 +51,7 @@ public class WorkoutPlansController {
 
         if (currentUser != null) {
             welcomeLabel.setText(currentUser.getUsername() + "'s Workout Plans");
+            System.out.println("✓ WorkoutPlans screen loaded for: " + currentUser.getUsername());
             setupListView();
             setupComboBoxes();
             loadWorkoutPlans();
@@ -91,31 +103,18 @@ public class WorkoutPlansController {
     }
 
     /**
-     * Load workout plans (mock data for now)
+     * Load workout plans from database
      */
     private void loadWorkoutPlans() {
         if (currentUser == null) return;
 
-        // Mock data - In real implementation, load from database
-        WorkoutPlan plan1 = new WorkoutPlan();
-        plan1.planName = "Full Body Strength";
-        plan1.description = "3-day full body workout focusing on compound movements";
-        plan1.difficulty = "Intermediate";
-        plan1.durationWeeks = 8;
-
-        WorkoutPlan plan2 = new WorkoutPlan();
-        plan2.planName = "Cardio Endurance";
-        plan2.description = "4-week running program to build endurance";
-        plan2.difficulty = "Beginner";
-        plan2.durationWeeks = 4;
-
-        WorkoutPlan plan3 = new WorkoutPlan();
-        plan3.planName = "Muscle Building";
-        plan3.description = "5-day split for muscle hypertrophy";
-        plan3.difficulty = "Advanced";
-        plan3.durationWeeks = 12;
-
-        plansList.addAll(plan1, plan2, plan3);
+        plansList.clear();
+        
+        // ✅ FIX: Use database instead of mock data
+        var plans = dbManager.getWorkoutPlans(currentUser.getUserId());
+        plansList.addAll(plans);
+        
+        System.out.println("✓ Loaded " + plans.size() + " workout plans from database");
     }
 
     /**
@@ -138,10 +137,13 @@ public class WorkoutPlansController {
      */
     @FXML
     private void handleAddPlanButtonAction() {
-        String planName = planNameField.getText();
-        String description = descriptionArea.getText();
+        String planName = planNameField.getText().trim();
+        String description = descriptionArea.getText().trim();
         String difficulty = difficultyComboBox.getValue();
-        String durationStr = durationWeeksField.getText();
+        String durationStr = durationWeeksField.getText().trim();
+
+        System.out.println("ℹ Add Plan button clicked");
+        System.out.println("ℹ Plan name: " + planName);
 
         // Validation
         if (planName.isEmpty()) {
@@ -167,22 +169,47 @@ public class WorkoutPlansController {
         int duration;
         try {
             duration = Integer.parseInt(durationStr);
+            if (duration < 1 || duration > 52) {
+                showError("Duration must be between 1 and 52 weeks");
+                return;
+            }
         } catch (NumberFormatException e) {
-            showError("Duration must be a number");
+            showError("Duration must be a valid number");
             return;
         }
 
+        System.out.println("ℹ Creating WorkoutPlan object...");
+
         // Create new plan
         WorkoutPlan newPlan = new WorkoutPlan();
+        newPlan.userId = currentUser.getUserId();
         newPlan.planName = planName;
         newPlan.description = description;
         newPlan.difficulty = difficulty;
         newPlan.durationWeeks = duration;
 
-        // Add to list (in real implementation, save to database)
-        plansList.add(newPlan);
-        showSuccess("Workout plan added successfully!");
-        clearForm();
+        System.out.println("ℹ Saving to database...");
+
+        // Save to database
+        boolean success = dbManager.saveWorkoutPlan(newPlan);
+
+        if (success) {
+            System.out.println("✓ Workout plan saved to database with ID: " + newPlan.planId);
+            
+            // Add to UI list
+            plansList.add(newPlan);
+            
+            // Show success message
+            showSuccess("Workout plan added successfully!");
+            
+            // Clear form
+            clearForm();
+            
+            System.out.println("✓ Workout plan added to UI: " + planName);
+        } else {
+            showError("Failed to save workout plan. Please try again.");
+            System.err.println("✗ Failed to save workout plan to database");
+        }
     }
 
     /**
@@ -204,9 +231,17 @@ public class WorkoutPlansController {
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                plansList.remove(selectedPlan);
-                planDetailsArea.clear();
-                showSuccess("Workout plan deleted successfully!");
+                boolean success = dbManager.deleteWorkoutPlan(selectedPlan.planId);
+                
+                if (success) {
+                    plansList.remove(selectedPlan);
+                    planDetailsArea.clear();
+                    showSuccess("Workout plan deleted successfully!");
+                    System.out.println("✓ Workout plan deleted from database with ID: " + selectedPlan.planId);
+                } else {
+                    showError("Failed to delete workout plan. Please try again.");
+                    System.err.println("✗ Failed to delete workout plan from database");
+                }
             }
         });
     }
@@ -239,6 +274,7 @@ public class WorkoutPlansController {
     private void showError(String message) {
         messageLabel.setText(message);
         messageLabel.setStyle("-fx-text-fill: red;");
+        System.err.println("✗ " + message);
     }
 
     /**
@@ -247,5 +283,6 @@ public class WorkoutPlansController {
     private void showSuccess(String message) {
         messageLabel.setText(message);
         messageLabel.setStyle("-fx-text-fill: green;");
+        System.out.println("✓ " + message);
     }
 }

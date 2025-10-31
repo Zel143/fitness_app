@@ -1,18 +1,26 @@
 package com.fittrack.controller;
 
+import java.io.IOException;
+import java.time.LocalDate;
+
+import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.FoodLog;
 import com.fittrack.model.User;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-
-import java.io.IOException;
-import java.time.LocalDate;
 
 /**
  * FoodLogController - Controller for the FoodLog.fxml view
@@ -38,6 +46,7 @@ public class FoodLogController {
     @FXML private Label messageLabel;
     @FXML private Label dailyTotalsLabel;
 
+    private final DatabaseManager dbManager = new DatabaseManager();
     private User currentUser;
     private final ObservableList<FoodLog> foodLogList = FXCollections.observableArrayList();
 
@@ -50,6 +59,7 @@ public class FoodLogController {
 
         if (currentUser != null) {
             welcomeLabel.setText(currentUser.getUsername() + "'s Food Log");
+            System.out.println("✓ FoodLog screen loaded for: " + currentUser.getUsername());
             setupTableColumns();
             loadFoodLog();
             updateDailyTotals();
@@ -77,16 +87,16 @@ public class FoodLogController {
     }
 
     /**
-     * Load food log (mock data for now)
+     * Load food log from database
      */
     private void loadFoodLog() {
         if (currentUser == null) return;
 
-        // Mock data - In real implementation, load from database
-        foodLogList.add(new FoodLog(1, currentUser.getUserId(), "Oatmeal with Banana", 350, 12.0, 58.0, 8.0, LocalDate.now()));
-        foodLogList.add(new FoodLog(2, currentUser.getUserId(), "Grilled Chicken Salad", 420, 45.0, 25.0, 15.0, LocalDate.now()));
-        foodLogList.add(new FoodLog(3, currentUser.getUserId(), "Protein Shake", 250, 30.0, 15.0, 5.0, LocalDate.now()));
-        foodLogList.add(new FoodLog(4, currentUser.getUserId(), "Rice and Vegetables", 380, 10.0, 65.0, 8.0, LocalDate.now().minusDays(1)));
+        foodLogList.clear();
+        var logs = dbManager.getFoodLog(currentUser.getUserId(), null);
+        foodLogList.addAll(logs);
+        
+        System.out.println("✓ Loaded " + logs.size() + " food log entries from database");
     }
 
     /**
@@ -125,12 +135,18 @@ public class FoodLogController {
      */
     @FXML
     private void handleAddFoodButtonAction() {
-        String foodName = foodNameField.getText();
-        String caloriesStr = caloriesField.getText();
-        String proteinStr = proteinField.getText();
-        String carbsStr = carbsField.getText();
-        String fatsStr = fatsField.getText();
+        // Get input values
+        String foodName = foodNameField.getText().trim();
+        String caloriesStr = caloriesField.getText().trim();
+        String proteinStr = proteinField.getText().trim();
+        String carbsStr = carbsField.getText().trim();
+        String fatsStr = fatsField.getText().trim();
         LocalDate date = datePicker.getValue();
+
+        System.out.println("ℹ Add Food button clicked");
+        System.out.println("ℹ Food name: " + foodName);
+        System.out.println("ℹ Creating FoodLog object...");
+        System.out.println("ℹ Saving to database...");
 
         // Validation
         if (foodName.isEmpty()) {
@@ -143,31 +159,72 @@ public class FoodLogController {
             return;
         }
 
+        // Parse calories
         int calories;
         try {
             calories = Integer.parseInt(caloriesStr);
+            if (calories < 0) {
+                showError("Calories must be a positive number");
+                return;
+            }
         } catch (NumberFormatException e) {
-            showError("Calories must be a number");
+            showError("Calories must be a valid number");
             return;
         }
 
-        double protein = parseDouble(proteinStr, "Protein");
-        if (protein < 0) return;
+        // Parse protein, carbs, and fats (default to 0 if empty)
+        double protein = 0;
+        if (!proteinStr.isEmpty()) {
+            try {
+                protein = Double.parseDouble(proteinStr);
+                if (protein < 0) {
+                    showError("Protein must be a positive number");
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                showError("Protein must be a valid number");
+                return;
+            }
+        }
 
-        double carbs = parseDouble(carbsStr, "Carbs");
-        if (carbs < 0) return;
+        double carbs = 0;
+        if (!carbsStr.isEmpty()) {
+            try {
+                carbs = Double.parseDouble(carbsStr);
+                if (carbs < 0) {
+                    showError("Carbs must be a positive number");
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                showError("Carbs must be a valid number");
+                return;
+            }
+        }
 
-        double fats = parseDouble(fatsStr, "Fats");
-        if (fats < 0) return;
+        double fats = 0;
+        if (!fatsStr.isEmpty()) {
+            try {
+                fats = Double.parseDouble(fatsStr);
+                if (fats < 0) {
+                    showError("Fats must be a positive number");
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                showError("Fats must be a valid number");
+                return;
+            }
+        }
 
+        // Validate date
         if (date == null) {
             showError("Please select a date");
             return;
         }
 
+        System.out.println("ℹ Creating FoodLog object...");
+
         // Create new food log entry
         FoodLog newFood = new FoodLog(
-            foodLogList.size() + 1,
             currentUser.getUserId(),
             foodName,
             calories,
@@ -177,15 +234,31 @@ public class FoodLogController {
             date
         );
 
-        // Add to list (in real implementation, save to database)
-        foodLogList.add(newFood);
-        showSuccess("Food logged successfully!");
-        
-        // Update totals
-        updateDailyTotals();
-        
-        // Clear form
-        clearForm();
+        System.out.println("ℹ Saving to database...");
+
+        // Save to database
+        boolean success = dbManager.saveFoodLog(newFood);
+
+        if (success) {
+            System.out.println("✓ Food entry saved to database with ID: " + newFood.getId());
+            
+            // Add to UI list
+            foodLogList.add(newFood);
+            
+            // Update totals
+            updateDailyTotals();
+            
+            // Clear form
+            clearForm();
+            
+            // Show success message
+            showSuccess("Food logged successfully!");
+            
+            System.out.println("✓ Food entry added to UI: " + foodName);
+        } else {
+            showError("Failed to save food entry. Please try again.");
+            System.err.println("✗ Failed to save food log to database");
+        }
     }
 
     /**
@@ -207,9 +280,17 @@ public class FoodLogController {
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                foodLogList.remove(selectedFood);
-                updateDailyTotals();
-                showSuccess("Food entry deleted successfully!");
+                boolean success = dbManager.deleteFoodLog(selectedFood.getId());
+                
+                if (success) {
+                    foodLogList.remove(selectedFood);
+                    updateDailyTotals();
+                    showSuccess("Food entry deleted successfully!");
+                    System.out.println("✓ Food entry deleted from database with ID: " + selectedFood.getId());
+                } else {
+                    showError("Failed to delete food entry. Please try again.");
+                    System.err.println("✗ Failed to delete food log from database");
+                }
             }
         });
     }
@@ -235,22 +316,6 @@ public class FoodLogController {
     }
 
     /**
-     * Parse double from string with error handling
-     */
-    private double parseDouble(String str, String fieldName) {
-        if (str.isEmpty()) {
-            return 0.0;
-        }
-        
-        try {
-            return Double.parseDouble(str);
-        } catch (NumberFormatException e) {
-            showError(fieldName + " must be a number");
-            return -1;
-        }
-    }
-
-    /**
      * Clear the form fields
      */
     private void clearForm() {
@@ -268,6 +333,7 @@ public class FoodLogController {
     private void showError(String message) {
         messageLabel.setText(message);
         messageLabel.setStyle("-fx-text-fill: red;");
+        System.err.println("✗ " + message);
     }
 
     /**
@@ -276,5 +342,6 @@ public class FoodLogController {
     private void showSuccess(String message) {
         messageLabel.setText(message);
         messageLabel.setStyle("-fx-text-fill: green;");
+        System.out.println("✓ " + message);
     }
 }

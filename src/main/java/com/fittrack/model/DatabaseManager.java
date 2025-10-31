@@ -347,6 +347,265 @@ public class DatabaseManager {
     }
 
     /**
+     * Retrieves all workout plans for a specific user.
+     */
+    public java.util.List<WorkoutPlan> getWorkoutPlans(int userId) {
+        java.util.List<WorkoutPlan> plans = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM workout_plans WHERE user_id = ? ORDER BY created_at DESC";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                WorkoutPlan plan = new WorkoutPlan();
+                plan.planId = rs.getInt("plan_id");
+                plan.userId = rs.getInt("user_id");
+                plan.planName = rs.getString("plan_name");
+                plan.description = rs.getString("description");
+                plan.difficulty = rs.getString("difficulty");
+                plan.durationWeeks = rs.getInt("duration_weeks");
+                plans.add(plan);
+            }
+            System.out.println("✓ Retrieved " + plans.size() + " workout plans for user ID: " + userId);
+        } catch (SQLException e) {
+            System.err.println("✗ Get workout plans error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return plans;
+    }
+
+    /**
+     * Saves a new workout plan.
+     */
+    public boolean saveWorkoutPlan(WorkoutPlan plan) {
+        String sql = "INSERT INTO workout_plans(user_id, plan_name, description, difficulty, duration_weeks) "
+            + "VALUES(?, ?, ?, ?, ?)";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setInt(1, plan.userId);
+            pstmt.setString(2, plan.planName);
+            pstmt.setString(3, plan.description);
+            pstmt.setString(4, plan.difficulty);
+            pstmt.setInt(5, plan.durationWeeks);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        plan.planId = generatedKeys.getInt(1);
+                    }
+                }
+            }
+            
+            System.out.println("✓ Workout plan saved with ID: " + plan.planId);
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("✗ Save workout plan error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Deletes a workout plan by its ID.
+     */
+    public boolean deleteWorkoutPlan(int planId) {
+        String sql = "DELETE FROM workout_plans WHERE plan_id = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, planId);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            System.out.println("✓ Workout plan deleted with ID: " + planId);
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("✗ Delete workout plan error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Retrieves all weight history for a specific user.
+     */
+    public java.util.List<WeightHistory> getWeightHistory(int userId) {
+        java.util.List<WeightHistory> history = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM weight_history WHERE user_id = ? ORDER BY date DESC";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                WeightHistory entry = new WeightHistory(
+                    rs.getInt("history_id"),
+                    rs.getInt("user_id"),
+                    rs.getDouble("weight"),
+                    rs.getObject("date", LocalDate.class)
+                );
+                history.add(entry);
+            }
+            System.out.println("✓ Retrieved " + history.size() + " weight entries for user ID: " + userId);
+        } catch (SQLException e) {
+            System.err.println("✗ Get weight history error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return history;
+    }
+
+    /**
+     * Saves a new weight history entry.
+     */
+    public boolean saveWeightHistory(WeightHistory entry) {
+        String sql = "INSERT INTO weight_history(user_id, weight, date) VALUES(?, ?, ?)";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setInt(1, entry.getUserId());
+            pstmt.setDouble(2, entry.getWeight());
+            pstmt.setObject(3, entry.getDate());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        entry.setId(generatedKeys.getInt(1));
+                    }
+                }
+            }
+            
+            System.out.println("✓ Weight history saved with ID: " + entry.getId());
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("✗ Save weight history error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Deletes a weight history entry by its ID.
+     */
+    public boolean deleteWeightHistory(int historyId) {
+        String sql = "DELETE FROM weight_history WHERE history_id = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, historyId);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            System.out.println("✓ Weight history deleted with ID: " + historyId);
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("✗ Delete weight history error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Retrieves all food log entries for a specific user and date.
+     */
+    public java.util.List<FoodLog> getFoodLog(int userId, LocalDate date) {
+        java.util.List<FoodLog> logs = new java.util.ArrayList<>();
+        String sql = date == null 
+            ? "SELECT * FROM food_log WHERE user_id = ? ORDER BY date DESC, food_log_id DESC"
+            : "SELECT * FROM food_log WHERE user_id = ? AND date = ? ORDER BY food_log_id DESC";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            if (date != null) {
+                pstmt.setObject(2, date);
+            }
+            
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                FoodLog log = new FoodLog(
+                    rs.getInt("food_log_id"),
+                    rs.getInt("user_id"),
+                    rs.getString("food_name"),
+                    rs.getInt("calories"),
+                    rs.getDouble("protein"),
+                    rs.getDouble("carbs"),
+                    rs.getDouble("fats"),
+                    rs.getObject("date", LocalDate.class)
+                );
+                logs.add(log);
+            }
+            System.out.println("✓ Retrieved " + logs.size() + " food log entries");
+        } catch (SQLException e) {
+            System.err.println("✗ Get food log error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return logs;
+    }
+
+    /**
+     * Saves a new food log entry.
+     */
+    public boolean saveFoodLog(FoodLog log) {
+        String sql = "INSERT INTO food_log(user_id, food_library_id, food_name, calories, protein, carbs, fats, date) "
+            + "VALUES(?, 1, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setInt(1, log.getUserId());
+            pstmt.setString(2, log.getFoodName());
+            pstmt.setInt(3, log.getCalories());
+            pstmt.setDouble(4, log.getProtein());
+            pstmt.setDouble(5, log.getCarbs());
+            pstmt.setDouble(6, log.getFats());
+            pstmt.setObject(7, log.getDate());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        log.setId(generatedKeys.getInt(1));
+                    }
+                }
+            }
+            
+            System.out.println("✓ Food log saved with ID: " + log.getId());
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("✗ Save food log error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Deletes a food log entry by its ID.
+     */
+    public boolean deleteFoodLog(int foodLogId) {
+        String sql = "DELETE FROM food_log WHERE food_log_id = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, foodLogId);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            System.out.println("✓ Food log deleted with ID: " + foodLogId);
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("✗ Delete food log error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
      * Saves a new workout log.
      */
     public boolean saveWorkoutLog(WorkoutLog log) {
@@ -376,6 +635,26 @@ public class DatabaseManager {
             return rowsAffected > 0;
         } catch (SQLException e) {
             System.err.println("✗ Save workout log error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Deletes a goal by its ID.
+     */
+    public boolean deleteGoal(int goalId) {
+        String sql = "DELETE FROM goals WHERE goal_id = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, goalId);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            System.out.println("✓ Goal deleted with ID: " + goalId);
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("✗ Delete goal error: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

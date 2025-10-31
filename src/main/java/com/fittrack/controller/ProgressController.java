@@ -1,20 +1,28 @@
 package com.fittrack.controller;
 
+import java.io.IOException;
+import java.time.LocalDate;
+
+import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
 import com.fittrack.model.WeightHistory;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-
-import java.io.IOException;
-import java.time.LocalDate;
 
 /**
  * ProgressController - Controller for the Progress.fxml view
@@ -33,6 +41,7 @@ public class ProgressController {
     @FXML private Label messageLabel;
     @FXML private Label statsLabel;
 
+    private final DatabaseManager dbManager = new DatabaseManager();
     private User currentUser;
     private final ObservableList<WeightHistory> weightHistoryList = FXCollections.observableArrayList();
 
@@ -74,17 +83,11 @@ public class ProgressController {
     private void loadWeightHistory() {
         if (currentUser == null) return;
 
-        // Mock data - In real implementation, load from database
-        weightHistoryList.add(new WeightHistory(1, currentUser.getUserId(), 85.5, LocalDate.now().minusDays(30)));
-        weightHistoryList.add(new WeightHistory(2, currentUser.getUserId(), 84.2, LocalDate.now().minusDays(23)));
-        weightHistoryList.add(new WeightHistory(3, currentUser.getUserId(), 83.8, LocalDate.now().minusDays(16)));
-        weightHistoryList.add(new WeightHistory(4, currentUser.getUserId(), 82.5, LocalDate.now().minusDays(9)));
-        weightHistoryList.add(new WeightHistory(5, currentUser.getUserId(), 81.9, LocalDate.now().minusDays(2)));
-
-        // Add current weight if available
-        if (currentUser.getWeight() != null) {
-            weightHistoryList.add(new WeightHistory(6, currentUser.getUserId(), currentUser.getWeight(), LocalDate.now()));
-        }
+        weightHistoryList.clear();
+        var history = dbManager.getWeightHistory(currentUser.getUserId());
+        weightHistoryList.addAll(history);
+        
+        System.out.println("✓ Loaded " + history.size() + " weight history entries from database");
     }
 
     /**
@@ -167,23 +170,26 @@ public class ProgressController {
 
         // Create new weight history entry
         WeightHistory newEntry = new WeightHistory(
-            weightHistoryList.size() + 1,
             currentUser.getUserId(),
             weight,
             date
         );
 
-        // Add to list (in real implementation, save to database)
-        weightHistoryList.add(newEntry);
-        showSuccess("Weight recorded successfully!");
-        
-        // Update chart and stats
-        updateChart();
-        updateStats();
-        
-        // Clear form
-        weightField.clear();
-        datePicker.setValue(LocalDate.now());
+        // Save to database
+        boolean success = dbManager.saveWeightHistory(newEntry);
+
+        if (success) {
+            weightHistoryList.add(newEntry);
+            showSuccess("Weight recorded successfully!");
+            updateChart();
+            updateStats();
+            weightField.clear();
+            datePicker.setValue(LocalDate.now());
+            System.out.println("✓ Weight entry added: " + weight + " kg on " + date);
+        } else {
+            showError("Failed to save weight entry. Please try again.");
+            System.err.println("✗ Failed to save weight history to database");
+        }
     }
 
     /**
@@ -205,10 +211,18 @@ public class ProgressController {
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                weightHistoryList.remove(selectedEntry);
-                updateChart();
-                updateStats();
-                showSuccess("Entry deleted successfully!");
+                boolean success = dbManager.deleteWeightHistory(selectedEntry.getId());
+                
+                if (success) {
+                    weightHistoryList.remove(selectedEntry);
+                    updateChart();
+                    updateStats();
+                    showSuccess("Entry deleted successfully!");
+                    System.out.println("✓ Weight entry deleted from database with ID: " + selectedEntry.getId());
+                } else {
+                    showError("Failed to delete weight entry. Please try again.");
+                    System.err.println("✗ Failed to delete weight history from database");
+                }
             }
         });
     }

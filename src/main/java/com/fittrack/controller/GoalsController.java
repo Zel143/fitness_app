@@ -199,9 +199,17 @@ public class GoalsController {
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                // Note: You'll need to add deleteGoal method to DatabaseManager
-                goalsList.remove(selectedGoal);
-                showSuccess("Goal deleted successfully!");
+                // ✅ FIX: Delete from database first
+                boolean success = dbManager.deleteGoal(selectedGoal.goalId);
+                
+                if (success) {
+                    goalsList.remove(selectedGoal);
+                    showSuccess("Goal deleted successfully!");
+                    System.out.println("✓ Goal deleted from database with ID: " + selectedGoal.goalId);
+                } else {
+                    showError("Failed to delete goal. Please try again.");
+                    System.err.println("✗ Failed to delete goal from database");
+                }
             }
         });
     }
