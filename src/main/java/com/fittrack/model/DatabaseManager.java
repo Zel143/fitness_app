@@ -12,16 +12,27 @@ import org.mindrot.jbcrypt.BCrypt;
 
 public class DatabaseManager {
 
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/fittrack_db";
-    private static final String DB_USER = "fittrack_admin";
-    private static final String DB_PASSWORD = "mySQL";
+    // SQLite database file will be created in the user's home directory
+    private static final String DB_FILE = System.getProperty("user.home") + "/FitTrack/fittrack.db";
+    private static final String DB_URL = "jdbc:sqlite:" + DB_FILE;
     
     /**
-     * Establishes a connection to the MySQL database.
+     * Establishes a connection to the SQLite database.
+     * Database file is stored at: ~/FitTrack/fittrack.db
      */
     public Connection connect() {
         try {
-            return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            // Create directory if it doesn't exist
+            java.io.File dbDir = new java.io.File(System.getProperty("user.home") + "/FitTrack");
+            if (!dbDir.exists()) {
+                dbDir.mkdirs();
+                System.out.println("✓ Created database directory: " + dbDir.getAbsolutePath());
+            }
+            
+            // Connect to SQLite database (creates file if it doesn't exist)
+            Connection conn = DriverManager.getConnection(DB_URL);
+            System.out.println("✓ Database connected: " + DB_FILE);
+            return conn;
         } catch (SQLException e) {
             System.err.println("✗ Database connection failed: " + e.getMessage());
             return null;
@@ -30,121 +41,122 @@ public class DatabaseManager {
 
     /**
      * Creates all necessary tables if they do not already exist.
+     * SQLite uses AUTOINCREMENT instead of AUTO_INCREMENT
      */
     public void createTables() {
         String[] tablesSQL = {
             // 1. users Table
             "CREATE TABLE IF NOT EXISTS users (\n"
-            + "    user_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    username VARCHAR(50) NOT NULL UNIQUE,\n"
-            + "    email VARCHAR(100) NOT NULL UNIQUE,\n"
-            + "    password_hash VARCHAR(255) NOT NULL,\n"
-            + "    age INT,\n"
-            + "    gender VARCHAR(20),\n"
-            + "    height DOUBLE,\n"
-            + "    weight DOUBLE,\n"
-            + "    fitness_level VARCHAR(20),\n"
+            + "    user_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    username TEXT NOT NULL UNIQUE,\n"
+            + "    email TEXT NOT NULL UNIQUE,\n"
+            + "    password_hash TEXT NOT NULL,\n"
+            + "    age INTEGER,\n"
+            + "    gender TEXT,\n"
+            + "    height REAL,\n"
+            + "    weight REAL,\n"
+            + "    fitness_level TEXT,\n"
             + "    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n"
-            + ") ENGINE=InnoDB;",
+            + ");",
             
             // 2. goals Table
             "CREATE TABLE IF NOT EXISTS goals (\n"
-            + "    goal_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    user_id INT NOT NULL,\n"
-            + "    goal_type VARCHAR(50) NOT NULL,\n"
-            + "    target_value DOUBLE,\n"
-            + "    target_unit VARCHAR(20),\n"
+            + "    goal_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    user_id INTEGER NOT NULL,\n"
+            + "    goal_type TEXT NOT NULL,\n"
+            + "    target_value REAL,\n"
+            + "    target_unit TEXT,\n"
             + "    target_date DATE,\n"
             + "    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n"
-            + "    status VARCHAR(20) DEFAULT 'active',\n"
+            + "    status TEXT DEFAULT 'active',\n"
             + "    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE\n"
-            + ") ENGINE=InnoDB;",
+            + ");",
             
             // 3. workout_plans Table
             "CREATE TABLE IF NOT EXISTS workout_plans (\n"
-            + "    plan_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    user_id INT NOT NULL,\n"
-            + "    plan_name VARCHAR(100) NOT NULL,\n"
+            + "    plan_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    user_id INTEGER NOT NULL,\n"
+            + "    plan_name TEXT NOT NULL,\n"
             + "    description TEXT,\n"
-            + "    difficulty VARCHAR(20),\n"
-            + "    duration_weeks INT,\n"
+            + "    difficulty TEXT,\n"
+            + "    duration_weeks INTEGER,\n"
             + "    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n"
             + "    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE\n"
-            + ") ENGINE=InnoDB;",
+            + ");",
             
             // 4. plan_exercises Table
             "CREATE TABLE IF NOT EXISTS plan_exercises (\n"
-            + "    plan_exercise_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    plan_id INT NOT NULL,\n"
-            + "    exercise_name VARCHAR(100) NOT NULL,\n"
-            + "    muscle_group VARCHAR(50),\n"
-            + "    sets INT,\n"
-            + "    reps INT,\n"
-            + "    duration INT,\n"
+            + "    plan_exercise_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    plan_id INTEGER NOT NULL,\n"
+            + "    exercise_name TEXT NOT NULL,\n"
+            + "    muscle_group TEXT,\n"
+            + "    sets INTEGER,\n"
+            + "    reps INTEGER,\n"
+            + "    duration INTEGER,\n"
             + "    notes TEXT,\n"
-            + "    day_of_week INT,\n"
+            + "    day_of_week INTEGER,\n"
             + "    FOREIGN KEY (plan_id) REFERENCES workout_plans(plan_id) ON DELETE CASCADE\n"
-            + ") ENGINE=InnoDB;",
+            + ");",
             
             // 5. exercises Table
             "CREATE TABLE IF NOT EXISTS exercises (\n"
-            + "    exercise_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    exercise_name VARCHAR(100) NOT NULL UNIQUE,\n"
-            + "    muscle_group VARCHAR(50),\n"
-            + "    exercise_type ENUM('strength', 'cardio') DEFAULT 'strength' NOT NULL\n"
-            + ") ENGINE=InnoDB;",
+            + "    exercise_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    exercise_name TEXT NOT NULL UNIQUE,\n"
+            + "    muscle_group TEXT,\n"
+            + "    exercise_type TEXT DEFAULT 'strength' NOT NULL\n"
+            + ");",
             
             // 6. workout_log Table
             "CREATE TABLE IF NOT EXISTS workout_log (\n"
-            + "    log_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    user_id INT NOT NULL,\n"
-            + "    exercise_id INT NOT NULL,\n"
-            + "    sets INT,\n"
-            + "    reps INT,\n"
-            + "    weight_used DOUBLE,\n"
-            + "    duration_minutes DECIMAL(6,2),\n"
-            + "    distance_km DECIMAL(6,2),\n"
+            + "    log_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    user_id INTEGER NOT NULL,\n"
+            + "    exercise_id INTEGER NOT NULL,\n"
+            + "    sets INTEGER,\n"
+            + "    reps INTEGER,\n"
+            + "    weight_used REAL,\n"
+            + "    duration_minutes REAL,\n"
+            + "    distance_km REAL,\n"
             + "    date DATE NOT NULL,\n"
             + "    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,\n"
             + "    FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id) ON DELETE RESTRICT\n"
-            + ") ENGINE=InnoDB;",
+            + ");",
             
             // 7. weight_history Table
             "CREATE TABLE IF NOT EXISTS weight_history (\n"
-            + "    history_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    user_id INT NOT NULL,\n"
-            + "    weight DOUBLE NOT NULL,\n"
+            + "    history_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    user_id INTEGER NOT NULL,\n"
+            + "    weight REAL NOT NULL,\n"
             + "    date DATE NOT NULL,\n"
             + "    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE\n"
-            + ") ENGINE=InnoDB;",
+            + ");",
             
             // 8. food_library Table
             "CREATE TABLE IF NOT EXISTS food_library (\n"
-            + "    food_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    food_name VARCHAR(100) NOT NULL,\n"
-            + "    serving_size_g DECIMAL(6,2),\n"
-            + "    calories DECIMAL(6,2),\n"
-            + "    protein DOUBLE,\n"
-            + "    carbs DOUBLE,\n"
-            + "    fats DOUBLE,\n"
-            + "    created_by_user_id INT NOT NULL,\n"
+            + "    food_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    food_name TEXT NOT NULL,\n"
+            + "    serving_size_g REAL,\n"
+            + "    calories REAL,\n"
+            + "    protein REAL,\n"
+            + "    carbs REAL,\n"
+            + "    fats REAL,\n"
+            + "    created_by_user_id INTEGER NOT NULL,\n"
             + "    FOREIGN KEY (created_by_user_id) REFERENCES users(user_id) ON DELETE CASCADE\n"
-            + ") ENGINE=InnoDB;",
+            + ");",
             
             // 9. food_log Table
             "CREATE TABLE IF NOT EXISTS food_log (\n"
-            + "    food_log_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    user_id INT NOT NULL,\n"
-            + "    food_library_id INT,\n"
-            + "    food_name VARCHAR(100) NOT NULL,\n"
-            + "    calories INT NOT NULL,\n"
-            + "    protein DOUBLE,\n"
-            + "    carbs DOUBLE,\n"
-            + "    fats DOUBLE,\n"
+            + "    food_log_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    user_id INTEGER NOT NULL,\n"
+            + "    food_library_id INTEGER,\n"
+            + "    food_name TEXT NOT NULL,\n"
+            + "    calories INTEGER NOT NULL,\n"
+            + "    protein REAL,\n"
+            + "    carbs REAL,\n"
+            + "    fats REAL,\n"
             + "    date DATE NOT NULL,\n"
             + "    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,\n"
             + "    FOREIGN KEY (food_library_id) REFERENCES food_library(food_id) ON DELETE SET NULL\n"
-            + ") ENGINE=InnoDB;"
+            + ");"
         };
 
         try (Connection conn = connect(); Statement stmt = conn.createStatement()) {

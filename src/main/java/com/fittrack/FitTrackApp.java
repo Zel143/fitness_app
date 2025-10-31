@@ -31,7 +31,8 @@ public class FitTrackApp extends Application {
 
         // Console output
         System.out.println("✓ FitTrack Application Started");
-        System.out.println("✓ Using REAL DATABASE (MySQL)");
+        System.out.println("✓ Using SQLite DATABASE (File-based)");
+        System.out.println("✓ Database location: " + System.getProperty("user.home") + "/FitTrack/fittrack.db");
         System.out.println("ℹ Register a new account or login with existing credentials");
     }
 

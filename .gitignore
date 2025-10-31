@@ -85,10 +85,10 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Database files (when you add them later)
-*.db
-*.sqlite
-*.sql
+# Database files (SQLite is now file-based)
+# Uncomment the line below if you DON'T want to track the database file
+# fittrack.db
+# *.db
 
 # Application specific
 /logs/
