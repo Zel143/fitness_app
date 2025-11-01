@@ -1,0 +1,20 @@
+AI Tool Used: GitHub Copilot Chat
+Purpose: Debugging and optimization assistant
+
+Specific Contributions:
+1. SQLite Migration (DatabaseManager.java, lines 16-27)
+   - Diagnosed getGeneratedKeys() incompatibility
+   - Suggested last_insert_rowid() alternative
+   - I implemented and tested the solution
+
+2. NULL Handling (DatabaseManager.java, lines 227-294)
+   - Identified setNull(Types.X) requirement for SQLite
+   - I applied the pattern across all save methods
+
+3. Controller Sync Pattern (ProgressController.java, lines 147-208)
+   - Suggested reload pattern instead of manual list manipulation
+   - I implemented and verified data persistence
+
+All core functionality, database design, UI/UX, and business logic 
+were developed independently. AI assisted with debugging and 
+optimization only.
