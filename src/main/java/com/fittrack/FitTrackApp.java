@@ -1,5 +1,7 @@
 package com.fittrack;
 
+import com.fittrack.model.DatabaseManager;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -14,6 +16,10 @@ public class FitTrackApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        // Initialize database on startup
+        DatabaseManager dbManager = new DatabaseManager();
+        dbManager.createTables();
+        
         // Load the Login.fxml file
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/fittrack/view/Login.fxml"));
         Parent root = loader.load();
@@ -32,7 +38,7 @@ public class FitTrackApp extends Application {
         // Console output
         System.out.println("✓ FitTrack Application Started");
         System.out.println("✓ Using SQLite DATABASE (File-based)");
-        System.out.println("✓ Database location: " + System.getProperty("user.home") + "/FitTrack/fittrack.db");
+        System.out.println("✓ Database location: fittrack.db (in project folder)");
         System.out.println("ℹ Register a new account or login with existing credentials");
     }
 

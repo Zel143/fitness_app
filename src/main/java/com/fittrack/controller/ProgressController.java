@@ -115,8 +115,10 @@ public class ProgressController {
             return;
         }
 
-        double currentWeight = weightHistoryList.get(weightHistoryList.size() - 1).getWeight();
-        double startWeight = weightHistoryList.get(0).getWeight();
+        // Database returns entries in DESC order (newest first)
+        // So index 0 = latest, last index = oldest
+        double currentWeight = weightHistoryList.get(0).getWeight();
+        double startWeight = weightHistoryList.get(weightHistoryList.size() - 1).getWeight();
         double change = currentWeight - startWeight;
         double changePercent = (change / startWeight) * 100;
 
@@ -175,16 +177,27 @@ public class ProgressController {
             date
         );
 
+        System.out.println("DEBUG: Saving weight entry - User ID: " + currentUser.getUserId() + 
+                         ", Weight: " + weight + ", Date: " + date);
+
         // Save to database
         boolean success = dbManager.saveWeightHistory(newEntry);
 
         if (success) {
-            weightHistoryList.add(newEntry);
-            showSuccess("Weight recorded successfully!");
+            System.out.println("✓ Weight entry saved to database with ID: " + newEntry.getId());
+            
+            // Reload from database to ensure correct data and IDs
+            loadWeightHistory();
+            
+            // Update UI
             updateChart();
             updateStats();
+            
+            // Clear form
             weightField.clear();
             datePicker.setValue(LocalDate.now());
+            
+            showSuccess("Weight recorded successfully!");
             System.out.println("✓ Weight entry added: " + weight + " kg on " + date);
         } else {
             showError("Failed to save weight entry. Please try again.");
@@ -211,14 +224,21 @@ public class ProgressController {
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
+                System.out.println("DEBUG: Deleting weight entry with ID: " + selectedEntry.getId());
+                
                 boolean success = dbManager.deleteWeightHistory(selectedEntry.getId());
                 
                 if (success) {
-                    weightHistoryList.remove(selectedEntry);
+                    System.out.println("✓ Weight entry deleted from database with ID: " + selectedEntry.getId());
+                    
+                    // Reload from database to ensure data is current
+                    loadWeightHistory();
+                    
+                    // Update UI
                     updateChart();
                     updateStats();
+                    
                     showSuccess("Entry deleted successfully!");
-                    System.out.println("✓ Weight entry deleted from database with ID: " + selectedEntry.getId());
                 } else {
                     showError("Failed to delete weight entry. Please try again.");
                     System.err.println("✗ Failed to delete weight history from database");

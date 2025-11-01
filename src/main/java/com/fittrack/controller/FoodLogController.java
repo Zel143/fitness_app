@@ -221,7 +221,7 @@ public class FoodLogController {
             return;
         }
 
-        System.out.println("ℹ Creating FoodLog object...");
+        System.out.println("DEBUG: Creating FoodLog object...");
 
         // Create new food log entry
         FoodLog newFood = new FoodLog(
@@ -234,7 +234,8 @@ public class FoodLogController {
             date
         );
 
-        System.out.println("ℹ Saving to database...");
+        System.out.println("DEBUG: Saving to database - User ID: " + currentUser.getUserId() + 
+                         ", Food: " + foodName + ", Calories: " + calories);
 
         // Save to database
         boolean success = dbManager.saveFoodLog(newFood);
@@ -242,8 +243,8 @@ public class FoodLogController {
         if (success) {
             System.out.println("✓ Food entry saved to database with ID: " + newFood.getId());
             
-            // Add to UI list
-            foodLogList.add(newFood);
+            // Reload from database to get correct data with IDs
+            loadFoodLog();
             
             // Update totals
             updateDailyTotals();
@@ -280,13 +281,20 @@ public class FoodLogController {
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
+                System.out.println("DEBUG: Deleting food entry with ID: " + selectedFood.getId());
+                
                 boolean success = dbManager.deleteFoodLog(selectedFood.getId());
                 
                 if (success) {
-                    foodLogList.remove(selectedFood);
-                    updateDailyTotals();
-                    showSuccess("Food entry deleted successfully!");
                     System.out.println("✓ Food entry deleted from database with ID: " + selectedFood.getId());
+                    
+                    // Reload from database to ensure data is current
+                    loadFoodLog();
+                    
+                    // Update totals
+                    updateDailyTotals();
+                    
+                    showSuccess("Food entry deleted successfully!");
                 } else {
                     showError("Failed to delete food entry. Please try again.");
                     System.err.println("✗ Failed to delete food log from database");

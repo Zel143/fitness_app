@@ -166,14 +166,18 @@ public class GoalsController {
         goal.targetDate = targetDate;
         goal.status = "active";
 
-        System.out.println("ℹ Attempting to save goal for user: " + currentUser.getUserId());
-        System.out.println("ℹ Goal details: " + goalType + ", " + targetValue + " " + targetUnit);
+        System.out.println("DEBUG: Attempting to save goal for user: " + currentUser.getUserId());
+        System.out.println("DEBUG: Goal details - Type: " + goalType + ", Value: " + targetValue + " " + targetUnit + ", Date: " + targetDate);
 
         if (dbManager.saveGoal(goal)) {
-            System.out.println("✓ Goal saved with ID: " + goal.goalId);
-            showSuccess("Goal added successfully!");
-            clearForm();
+            System.out.println("✓ Goal saved to database with ID: " + goal.goalId);
+            
+            // Reload from database to get correct goal with ID
             loadGoals();
+            
+            // Clear form and show success
+            clearForm();
+            showSuccess("Goal added successfully!");
         } else {
             System.err.println("✗ Failed to save goal to database");
             showError("Failed to add goal. Please try again.");
@@ -199,13 +203,18 @@ public class GoalsController {
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                // ✅ FIX: Delete from database first
+                System.out.println("DEBUG: Deleting goal with ID: " + selectedGoal.goalId);
+                
+                // Delete from database
                 boolean success = dbManager.deleteGoal(selectedGoal.goalId);
                 
                 if (success) {
-                    goalsList.remove(selectedGoal);
-                    showSuccess("Goal deleted successfully!");
                     System.out.println("✓ Goal deleted from database with ID: " + selectedGoal.goalId);
+                    
+                    // Reload from database to ensure data is current
+                    loadGoals();
+                    
+                    showSuccess("Goal deleted successfully!");
                 } else {
                     showError("Failed to delete goal. Please try again.");
                     System.err.println("✗ Failed to delete goal from database");

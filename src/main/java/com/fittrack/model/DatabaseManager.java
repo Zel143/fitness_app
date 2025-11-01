@@ -12,24 +12,27 @@ import org.mindrot.jbcrypt.BCrypt;
 
 public class DatabaseManager {
 
-    // SQLite database file will be created in the user's home directory
-    private static final String DB_FILE = System.getProperty("user.home") + "/FitTrack/fittrack.db";
+    // SQLite database file in the project folder
+    private static final String DB_FILE = "fittrack.db";
     private static final String DB_URL = "jdbc:sqlite:" + DB_FILE;
+    
+    // Static block to load SQLite JDBC driver
+    static {
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            System.err.println("SQLite JDBC driver not found!");
+            e.printStackTrace();
+        }
+    }
     
     /**
      * Establishes a connection to the SQLite database.
-     * Database file is stored at: ~/FitTrack/fittrack.db
+     * Database file is stored in the project folder: fittrack.db
      */
     public Connection connect() {
         try {
-            // Create directory if it doesn't exist
-            java.io.File dbDir = new java.io.File(System.getProperty("user.home") + "/FitTrack");
-            if (!dbDir.exists()) {
-                dbDir.mkdirs();
-                System.out.println("✓ Created database directory: " + dbDir.getAbsolutePath());
-            }
-            
-            // Connect to SQLite database (creates file if it doesn't exist)
+            // Connect to SQLite database in project folder
             Connection conn = DriverManager.getConnection(DB_URL);
             System.out.println("✓ Database connected: " + DB_FILE);
             return conn;
@@ -177,6 +180,10 @@ public class DatabaseManager {
         String sql = "INSERT INTO users(username, email, password_hash) VALUES(?,?,?)";
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
 
+        System.out.println("DEBUG: Registering user: " + user.username);
+        System.out.println("DEBUG: Email: " + user.email);
+        System.out.println("DEBUG: Password hash: " + hashedPassword.substring(0, 20) + "...");
+
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, user.username);
@@ -187,6 +194,7 @@ public class DatabaseManager {
             return true;
         } catch (SQLException e) {
             System.err.println("✗ Registration error: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -204,21 +212,38 @@ public class DatabaseManager {
 
             if (rs.next()) {
                 String storedHash = rs.getString("password_hash");
+                System.out.println("DEBUG: Found user: " + username);
+                System.out.println("DEBUG: Stored hash: " + storedHash.substring(0, 20) + "...");
+                System.out.println("DEBUG: Checking password...");
+                
                 if (BCrypt.checkpw(password, storedHash)) {
                     // Password is correct, create User object
                     User user = new User();
                     user.userId = rs.getInt("user_id");
                     user.username = rs.getString("username");
                     user.email = rs.getString("email");
-                    user.age = rs.getObject("age", Integer.class);
+                    
+                    // Handle potentially NULL values from SQLite
+                    Integer ageValue = rs.getObject("age") != null ? rs.getInt("age") : null;
+                    user.age = ageValue;
+                    
                     user.gender = rs.getString("gender");
-                    user.height = rs.getObject("height", Double.class);
-                    user.weight = rs.getObject("weight", Double.class);
+                    
+                    Double heightValue = rs.getObject("height") != null ? rs.getDouble("height") : null;
+                    user.height = heightValue;
+                    
+                    Double weightValue = rs.getObject("weight") != null ? rs.getDouble("weight") : null;
+                    user.weight = weightValue;
+                    
                     user.fitnessLevel = rs.getString("fitness_level");
                     
                     System.out.println("✓ Login successful: " + username);
                     return user;
+                } else {
+                    System.out.println("✗ Password verification failed for user: " + username);
                 }
+            } else {
+                System.out.println("✗ User not found: " + username);
             }
         } catch (SQLException e) {
             System.err.println("✗ Login error: " + e.getMessage());
@@ -235,20 +260,44 @@ public class DatabaseManager {
             + "SET age = ?, gender = ?, height = ?, weight = ?, fitness_level = ? "
             + "WHERE user_id = ?";
 
+        System.out.println("DEBUG: Updating profile for user ID: " + user.userId);
+        System.out.println("DEBUG: Age=" + user.age + ", Gender=" + user.gender + 
+                         ", Height=" + user.height + ", Weight=" + user.weight + 
+                         ", FitnessLevel=" + user.fitnessLevel);
+
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setObject(1, user.age);
+            
+            // Handle NULL values properly for SQLite
+            if (user.age != null) {
+                pstmt.setInt(1, user.age);
+            } else {
+                pstmt.setNull(1, java.sql.Types.INTEGER);
+            }
+            
             pstmt.setString(2, user.gender);
-            pstmt.setObject(3, user.height);
-            pstmt.setObject(4, user.weight);
+            
+            if (user.height != null) {
+                pstmt.setDouble(3, user.height);
+            } else {
+                pstmt.setNull(3, java.sql.Types.DOUBLE);
+            }
+            
+            if (user.weight != null) {
+                pstmt.setDouble(4, user.weight);
+            } else {
+                pstmt.setNull(4, java.sql.Types.DOUBLE);
+            }
+            
             pstmt.setString(5, user.fitnessLevel);
             pstmt.setInt(6, user.userId);
             
             int rowsAffected = pstmt.executeUpdate();
-            System.out.println("✓ Profile updated for user: " + user.username);
+            System.out.println("✓ Profile updated for user: " + user.username + " (rows affected: " + rowsAffected + ")");
             return rowsAffected > 0;
         } catch (SQLException e) {
             System.err.println("✗ Update profile error: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -260,22 +309,40 @@ public class DatabaseManager {
         String sql = "INSERT INTO goals(user_id, goal_type, target_value, target_unit, target_date, status) "
             + "VALUES(?, ?, ?, ?, ?, ?)";
 
+        System.out.println("DEBUG: Saving goal for user ID: " + goal.userId);
+        System.out.println("DEBUG: Type=" + goal.goalType + ", Value=" + goal.targetValue + 
+                         ", Unit=" + goal.targetUnit + ", Date=" + goal.targetDate + ", Status=" + goal.status);
+
         try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, goal.userId);
             pstmt.setString(2, goal.goalType);
-            pstmt.setObject(3, goal.targetValue);
+            
+            // Handle NULL values properly
+            if (goal.targetValue != null) {
+                pstmt.setDouble(3, goal.targetValue);
+            } else {
+                pstmt.setNull(3, java.sql.Types.DOUBLE);
+            }
+            
             pstmt.setString(4, goal.targetUnit);
-            pstmt.setObject(5, goal.targetDate);
+            
+            if (goal.targetDate != null) {
+                pstmt.setObject(5, goal.targetDate);
+            } else {
+                pstmt.setNull(5, java.sql.Types.DATE);
+            }
+            
             pstmt.setString(6, goal.status);
             
             int rowsAffected = pstmt.executeUpdate();
             
-            // Retrieve the generated goal_id
+            // SQLite: Get last insert ID using last_insert_rowid()
             if (rowsAffected > 0) {
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        goal.goalId = generatedKeys.getInt(1);
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                    if (rs.next()) {
+                        goal.goalId = rs.getInt(1);
                     }
                 }
             }
@@ -396,7 +463,7 @@ public class DatabaseManager {
             + "VALUES(?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, plan.userId);
             pstmt.setString(2, plan.planName);
             pstmt.setString(3, plan.description);
@@ -405,10 +472,12 @@ public class DatabaseManager {
             
             int rowsAffected = pstmt.executeUpdate();
             
+            // SQLite: Get last insert ID using last_insert_rowid()
             if (rowsAffected > 0) {
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        plan.planId = generatedKeys.getInt(1);
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                    if (rs.next()) {
+                        plan.planId = rs.getInt(1);
                     }
                 }
             }
@@ -478,17 +547,19 @@ public class DatabaseManager {
         String sql = "INSERT INTO weight_history(user_id, weight, date) VALUES(?, ?, ?)";
 
         try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, entry.getUserId());
             pstmt.setDouble(2, entry.getWeight());
             pstmt.setObject(3, entry.getDate());
             
             int rowsAffected = pstmt.executeUpdate();
             
+            // SQLite: Get last insert ID using last_insert_rowid()
             if (rowsAffected > 0) {
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        entry.setId(generatedKeys.getInt(1));
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                    if (rs.next()) {
+                        entry.setId(rs.getInt(1));
                     }
                 }
             }
@@ -569,7 +640,7 @@ public class DatabaseManager {
             + "VALUES(?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, log.getUserId());
             pstmt.setString(2, log.getFoodName());
             pstmt.setInt(3, log.getCalories());
@@ -580,10 +651,12 @@ public class DatabaseManager {
             
             int rowsAffected = pstmt.executeUpdate();
             
+            // SQLite: Get last insert ID using last_insert_rowid()
             if (rowsAffected > 0) {
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        log.setId(generatedKeys.getInt(1));
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                    if (rs.next()) {
+                        log.setId(rs.getInt(1));
                     }
                 }
             }
@@ -625,7 +698,7 @@ public class DatabaseManager {
             + "VALUES(?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, log.getUserId());
             pstmt.setInt(2, 1); // You'll need to map exercise name to exercise_id
             pstmt.setInt(3, log.getSets());
@@ -635,10 +708,12 @@ public class DatabaseManager {
             
             int rowsAffected = pstmt.executeUpdate();
             
+            // SQLite: Get last insert ID using last_insert_rowid()
             if (rowsAffected > 0) {
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        log.setId(generatedKeys.getInt(1));
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                    if (rs.next()) {
+                        log.setId(rs.getInt(1));
                     }
                 }
             }
