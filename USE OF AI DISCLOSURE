@@ -1,20 +1,151 @@
-AI Tool Used: GitHub Copilot Chat
-Purpose: Debugging and optimization assistant
+# 📋 How Generative AI Was Used in the FitTrack Project
 
-Specific Contributions:
-1. SQLite Migration (DatabaseManager.java, lines 16-27)
-   - Diagnosed getGeneratedKeys() incompatibility
-   - Suggested last_insert_rowid() alternative
-   - I implemented and tested the solution
+This document provides a comprehensive and transparent breakdown of how Generative AI (such as GitHub Copilot and large language models) was utilized as a development tool and learning aid throughout the creation of this project.
 
-2. NULL Handling (DatabaseManager.java, lines 227-294)
-   - Identified setNull(Types.X) requirement for SQLite
-   - I applied the pattern across all save methods
+---
 
-3. Controller Sync Pattern (ProgressController.java, lines 147-208)
-   - Suggested reload pattern instead of manual list manipulation
-   - I implemented and verified data persistence
+## 🎯 1. Database Migration Assistance (MySQL → SQLite)
 
-All core functionality, database design, UI/UX, and business logic 
-were developed independently. AI assisted with debugging and 
-optimization only.
+### What AI Helped With:
+- **Converted MySQL syntax to SQLite-compatible SQL**
+  - Changed `AUTO_INCREMENT` → `AUTOINCREMENT`
+  - Changed `VARCHAR` → `TEXT`
+  - Adapted `DATETIME` → `TIMESTAMP`
+  - Modified foreign key constraints for SQLite compatibility
+
+### Example Transformation:
+```java
+// MySQL (Original)
+"CREATE TABLE users (\n"
++ "    user_id INT AUTO_INCREMENT PRIMARY KEY,\n"
++ "    username VARCHAR(50) NOT NULL UNIQUE,\n"
+
+// SQLite (AI-Converted)
+"CREATE TABLE IF NOT EXISTS users (\n"
++ "    user_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
++ "    username TEXT NOT NULL UNIQUE,\n"
+```
+
+### AI's Role:
+✅ Identified syntax incompatibilities
+✅ Provided SQLite-specific alternatives
+✅ Ensured data type mappings were correct
+✅ Added `IF NOT EXISTS` clauses for safety
+
+---
+
+## 🔧 2. JDBC Driver Configuration
+
+### What AI Helped With:
+```java
+// AI-generated static block for SQLite driver loading
+static {
+    try {
+        Class.forName("org.sqlite.JDBC");
+    } catch (ClassNotFoundException e) {
+        System.err.println("SQLite JDBC driver not found!");
+        e.printStackTrace();
+    }
+}
+
+// AI-updated connection string
+private static final String DB_FILE = "fittrack.db";
+private static final String DB_URL = "jdbc:sqlite:" + DB_FILE;
+```
+
+### AI's Role:
+✅ Explained why `Class.forName()` is needed
+✅ Showed how to construct SQLite JDBC URLs
+✅ Suggested storing DB file in project root
+✅ Added error handling for missing drivers
+
+---
+
+## 💾 3. CRUD Operation Refactoring
+
+### What AI Helped With:
+
+#### A. Handling NULL Values in SQLite
+```java
+// AI-added NULL handling for optional fields
+if (user.age != null) {
+    pstmt.setInt(1, user.age);
+} else {
+    pstmt.setNull(1, java.sql.Types.INTEGER);
+}
+```
+**Why This Matters:**
+SQLite doesn't handle NULL the same way as MySQL. AI ensured proper NULL value insertion.
+
+---
+
+#### B. Getting Auto-Generated IDs
+```java
+// MySQL way (didn't work in SQLite)
+ResultSet rs = pstmt.getGeneratedKeys();
+
+// SQLite way (AI-suggested)
+try (Statement stmt = conn.createStatement();
+     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+    if (rs.next()) {
+        goal.goalId = rs.getInt(1);
+    }
+}
+```
+
+### AI's Role:
+✅ Explained that SQLite uses `last_insert_rowid()`
+✅ Showed how to retrieve it after an `INSERT`
+✅ Applied this pattern consistently across all save methods
+
+---
+
+#### C. LocalDate Handling
+```java
+// AI-added proper date handling for SQLite
+goal.targetDate = rs.getObject("target_date", LocalDate.class);
+
+// When saving
+pstmt.setObject(5, goal.targetDate);
+```
+
+### AI's Role:
+✅ Used `setObject()` and `getObject()` for modern date types
+✅ Ensured compatibility with Java 8+ date/time API
+✅ Avoided SQL injection risks
+
+---
+
+## 📊 4. Enhanced Error Handling & Logging
+
+### What AI Added:
+```java
+// AI-added detailed debug logging
+System.out.println("DEBUG: Registering user: " + user.username);
+System.out.println("DEBUG: Email: " + user.email);
+System.out.println("DEBUG: Password hash: " + hashedPassword.substring(0, 20) + "...");
+
+// AI-added console symbols for clarity
+System.out.println("✓ User registered: " + user.username);
+System.err.println("✗ Registration error: " + e.getMessage());
+```
+
+### AI's Role:
+✅ Added emoji/symbols (✓, ✗) for visual feedback
+✅ Suggested `printStackTrace()` for debugging
+✅ Implemented consistent logging patterns
+✅ Masked sensitive data (password hash preview only)
+
+---
+
+## 🔐 5. Security Enhancements
+
+### What AI Suggested:
+
+#### A. BCrypt Password Hashing
+```java
+// AI-recommended BCrypt over plain text
+String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
+// Verification
+if (BCrypt.checkpw(password, storedHash)) {
