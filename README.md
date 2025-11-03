@@ -1,14 +1,15 @@
-Here is the updated `README.md` file, reflecting the project's current state with full database integration and expanded features.
+ 
+Here is the corrected `README.md` file, updated to reflect that the project runs on **SQLite**.
 
 -----
 
 # FitTrack - Fitness Tracking Application
 
-A JavaFX-based fitness tracking application with a Model-View-Controller (MVC) architecture, fully integrated with a MySQL database.
+A JavaFX-based fitness tracking application with a Model-View-Controller (MVC) architecture, using a local SQLite database.
 
 ## 🎯 Current Status: ✅ Fully Operational
 
-This project is a complete desktop application that connects to a MySQL database to provide a comprehensive fitness tracking experience. All features listed are fully implemented.
+This project is a complete, self-contained desktop application. It uses a **serverless SQLite database**, meaning no external database setup is required. All features listed are fully implemented.
 
 ## ✨ Features
 
@@ -25,7 +26,7 @@ This project is a complete desktop application that connects to a MySQL database
 
   * **Core**: Java 21
   * **Framework**: JavaFX 21.0.2 (for UI)
-  * **Database**: MySQL 8.0.33
+  * **Database**: **SQLite** (Serverless, file-based)
   * **Build**: Apache Maven
   * **Security**: jBCrypt 0.4 (for password hashing)
 
@@ -39,39 +40,16 @@ fittrack/
 │       │   └── com/
 │       │       └── fittrack/
 │       │           ├── FitTrackApp.java          # Main application entry point
-│       │           ├── DatabaseSetup.java        # Utility to create tables
+│       │           ├── TestConnection.java       # Utility to create tables
 │       │           ├── model/                    # Data models (POJOs)
-│       │           │   ├── User.java
-│       │           │   ├── Goal.java
-│       │           │   ├── WorkoutPlan.java
-│       │           │   ├── FoodLog.java
-│       │           │   ├── WeightHistory.java
-│       │           │   └── ...
 │       │           ├── controller/               # UI Controllers
-│       │           │   ├── LoginController.java
-│       │           │   ├── RegisterController.java
-│       │           │   ├── ProfileController.java
-│       │           │   ├── DashboardController.java
-│       │           │   ├── GoalsController.java
-│       │           │   ├── FoodLogController.java
-│       │           │   ├── ProgressController.java
-│       │           │   └── WorkoutPlansController.java
 │       │           └── util/                     # Utility classes
-│       │               ├── SessionManager.java   # Manages logged-in user
-│       │               └── SceneSwitcher.java    # Switches between screens
 │       └── resources/
 │           └── com/
 │               └── fittrack/
 │                   └── view/                     # FXML UI files
-│                       ├── Login.fxml
-│                       ├── Register.fxml
-│                       ├── Profile.fxml
-│                       ├── Dashboard.fxml
-│                       ├── Goals.fxml
-│                       ├── FoodLog.fxml
-│                       ├── Progress.fxml
-│                       └── WorkoutPlans.fxml
-└── pom.xml                                       # Maven configuration
+├── pom.xml                                       # Maven configuration
+└── fittrack.db                                   # <-- SQLite DB file (created at runtime)
 ```
 
 ## 🚀 How to Run
@@ -80,37 +58,18 @@ fittrack/
 
   * Java 21 (or higher)
   * Apache Maven
-  * A running MySQL server
 
 ### 2\. Database Setup
 
-Before running the application, you must set up the MySQL database.
+**No database setup is required\!**
 
-1.  **Connect to MySQL** using your preferred client.
+SQLite is a serverless, file-based database. The database file (e.g., `fittrack.db`) and all necessary tables will be created **automatically** in the project's root directory the first time you run the application.
 
-2.  **Create the database**:
-
-    ```sql
-    CREATE DATABASE fittrack_db;
-    ```
-
-3.  **Create the user and grant privileges**:
-
-    ```sql
-    CREATE USER 'fittrack_admin'@'localhost' IDENTIFIED BY 'mySQL';
-    GRANT ALL PRIVILEGES ON fittrack_db.* TO 'fittrack_admin'@'localhost';
-    FLUSH PRIVILEGES;
-    ```
-
-    *Note: The user and password (`fittrack_admin`, `mySQL`) are defined in `DatabaseManager.java`. You can change them there if needed.*
-
-4.  **Create Tables**:
-
-      * The easiest way is to run the `src/main/java/com/fittrack/DatabaseSetup.java` file. Run it as a Java application (via your IDE or command line) once. It will connect to the database and execute all `CREATE TABLE` statements.
+The `TestConnection.java` or `DatabaseSetup.java` file can be run once manually if needed, but the application is likely configured to initialize the database on its own.
 
 ### 3\. Running the Application
 
-1.  **Install dependencies**:
+1.  **Install dependencies** (Make sure your `pom.xml` lists `sqlite-jdbc` instead of `mysql-connector-java`):
     ```bash
     mvn clean install
     ```
@@ -123,17 +82,13 @@ The application will start, presenting you with the Login screen. You can now re
 
 ## 🐛 Common Issues
 
-### Issue: `java.sql.SQLException: Access denied for user...`
+### Issue: `java.sql.SQLException: database file is locked`
 
-**Solution:** Ensure the username and password in `DatabaseManager.java` match the user you created in MySQL. Also, verify you granted privileges to `fittrack_db`.
+**Solution:** This means another process is using the `fittrack.db` file. Close any other running instances of the app or any database browser tools (like DB Browser for SQLite) that might have the file open.
 
-### Issue: `java.sql.SQLException: Unknown database 'fittrack_db'`
+### Issue: `java.sql.SQLException: no such table: users`
 
-**Solution:** You forgot to run `CREATE DATABASE fittrack_db;` in MySQL before starting the app.
-
-### Issue: `java.sql.SQLSyntaxErrorException: Table 'fittrack_db.users' doesn't exist`
-
-**Solution:** You did not run the `DatabaseSetup.java` file to create the tables after setting up the database.
+**Solution:** The database file (`fittrack.db`) was created, but the tables were not. This can happen if the app was closed during its very first initialization. Delete the `fittrack.db` file and restart the application to allow it to be created properly.
 
 ### Issue: JavaFX classes not found
 
