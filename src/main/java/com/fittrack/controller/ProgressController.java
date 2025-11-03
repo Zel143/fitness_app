@@ -13,7 +13,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -32,6 +34,8 @@ public class ProgressController {
 
     @FXML private Label welcomeLabel;
     @FXML private LineChart<String, Number> weightChart;
+    @FXML private CategoryAxis xAxis;
+    @FXML private NumberAxis yAxis;
     @FXML private TableView<WeightHistory> weightHistoryTable;
     @FXML private TableColumn<WeightHistory, LocalDate> dateColumn;
     @FXML private TableColumn<WeightHistory, Double> weightColumn;
