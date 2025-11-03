@@ -96,13 +96,20 @@ public class ProgressController {
     private void updateChart() {
         weightChart.getData().clear();
 
+        // Ensure chart displays chronologically (oldest -> newest) regardless of table order
+        var sortedForChart = weightHistoryList.stream()
+                .sorted((a, b) -> a.getDate().compareTo(b.getDate()))
+                .toList();
+
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Weight (kg)");
 
-        for (WeightHistory wh : weightHistoryList) {
+        for (WeightHistory wh : sortedForChart) {
             series.getData().add(new XYChart.Data<>(wh.getDate().toString(), wh.getWeight()));
         }
 
+        weightChart.setLegendVisible(true);
+        weightChart.setTitle("Weight Over Time");
         weightChart.getData().add(series);
     }
 

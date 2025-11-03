@@ -43,7 +43,7 @@
             <Font name="System Bold" size="18.0" />
          </font>
       </Label>
-      <LineChart fx:id="weightChart" prefHeight="250.0" legendVisible="true">
+      <LineChart fx:id="weightChart" prefHeight="250.0" legendVisible="true" title="Weight Over Time">
          <xAxis>
             <CategoryAxis label="Date" />
          </xAxis>
@@ -54,13 +54,13 @@
    </VBox>
    
    <!-- Weight History Table -->
-   <VBox spacing="10.0">
+   <VBox spacing="10.0" VBox.vgrow="ALWAYS">
       <Label text="Weight History">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
       </Label>
-      <TableView fx:id="weightHistoryTable" prefHeight="150.0">
+      <TableView fx:id="weightHistoryTable" prefHeight="150.0" columnResizePolicy="CONSTRAINED_RESIZE_POLICY" VBox.vgrow="ALWAYS">
          <columns>
             <TableColumn fx:id="dateColumn" text="Date" prefWidth="200.0" />
             <TableColumn fx:id="weightColumn" text="Weight (kg)" prefWidth="150.0" />
