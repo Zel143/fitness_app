@@ -7,134 +7,55 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.geometry.Pos?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17"
-            xmlns:fx="http://javafx.com/fxml/1"
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.fittrack.controller.DashboardController"
             prefWidth="1000.0" prefHeight="650.0"
-            stylesheets="@src\main\styles\styleSheet.css"> <!-- src\main\styles\styleSheet.css -->
+            stylesheets="@/com/fittrack/view/styleSheet.css">
 
-    <!-- Sidebar (User info + Quick Actions) -->
+    <!-- Sidebar -->
     <left>
-        <VBox prefWidth="220.0" spacing="15.0"
-              style="-fx-background-color: #1E88E5; -fx-padding: 25;">
-            <Label fx:id="userLabel" text="Welcome, User!" textFill="WHITE">
-                <font>
-                    <Font name="System Bold" size="20.0"/>
-                </font>
-            </Label>
-
-            <Separator style="-fx-background-color: white;"/>
-
+        <VBox fx:id="sidebar" prefWidth="220.0" spacing="15.0" styleClass="sidebar">
+            <Label fx:id="userLabel" text="Welcome, User!" styleClass="sidebar-user"/>
+            <Separator/>
             <VBox spacing="10.0">
-                <Button text="🎯 My Goals" onAction="#handleGoalsButtonAction"
-                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14;"/>
-                <Button text="📅 Schedule" onAction="#handleWorkoutPlansButtonAction"
-                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14;"/>
-                <Button text="📈 Progress" onAction="#handleProgressButtonAction"
-                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14;"/>
-                <Button text="🍎 Food Log" onAction="#handleFoodLogButtonAction"
-                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14;"/>
+                <Button text="🎯 My Goals" onAction="#handleGoalsButtonAction" styleClass="sidebar-button"/>
+                <Button text="📅 Schedule" onAction="#handleWorkoutPlansButtonAction" styleClass="sidebar-button"/>
+                <Button text="📈 Progress" onAction="#handleProgressButtonAction" styleClass="sidebar-button"/>
+                <Button text="🍎 Food Log" onAction="#handleFoodLogButtonAction" styleClass="sidebar-button"/>
             </VBox>
-
             <Pane VBox.vgrow="ALWAYS"/>
-
-            <Button text="🚪 Logout" onAction="#handleLogoutButtonAction"
-                    style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-size: 14; -fx-background-radius: 8;"/>
+            <Button text="🚪 Logout" onAction="#handleLogoutButtonAction" styleClass="logout-button"/>
         </VBox>
     </left>
 
     <!-- Top Bar -->
     <top>
-        <HBox spacing="10.0" alignment="CENTER_LEFT"
-              style="-fx-background-color: #1976D2; -fx-padding: 15;">
+        <HBox spacing="10.0" alignment="CENTER_LEFT" styleClass="topbar">
             <Label fx:id="motivationLabel"
                    text="Let's crush your fitness goals today!"
-                   textFill="WHITE" style="-fx-font-size: 16px;">
-                <font>
-                    <Font name="System Bold" size="16.0"/>
-                </font>
-            </Label>
-
-            <!-- Spacer -->
+                   styleClass="topbar-text"/>
             <Region HBox.hgrow="ALWAYS"/>
-
-            <!-- Theme Toggle -->
-            <HBox alignment="CENTER_RIGHT" spacing="5.0">
-                <Label text="🌞" textFill="WHITE" style="-fx-font-size: 14;"/>
-                <CheckBox fx:id="themeToggle" text="Dark Mode"
-                          textFill="WHITE" style="-fx-font-size: 13;"/>
-                <Label text="🌙" textFill="WHITE" style="-fx-font-size: 14;"/>
-            </HBox>
         </HBox>
     </top>
 
-    <!-- Main Content -->
+    <!-- Center Content -->
     <center>
         <AnchorPane>
             <VBox alignment="TOP_CENTER" spacing="25.0"
                   AnchorPane.topAnchor="10" AnchorPane.bottomAnchor="10"
                   AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10">
-                <padding>
-                    <Insets top="20" left="20" right="20" bottom="20"/>
-                </padding>
-
-                <!-- Stats Header -->
-                <Label text="Dashboard Overview">
-                    <font>
-                        <Font name="System Bold" size="22.0"/>
-                    </font>
-                </Label>
-
-                <!-- Commented-Out Progress Indicators -->
-                <!--
-                <HBox alignment="CENTER" spacing="20.0">
-                    <VBox alignment="CENTER" spacing="5.0"
-                          style="-fx-background-color: #E3F2FD; -fx-padding: 20; -fx-background-radius: 10;">
-                        <Label text="Exercises"/>
-                        <ProgressIndicator progress="0.5" prefWidth="80" prefHeight="80"/>
-                    </VBox>
-                    <VBox alignment="CENTER" spacing="5.0"
-                          style="-fx-background-color: #FFEBEE; -fx-padding: 20; -fx-background-radius: 10;">
-                        <Label text="Meals"/>
-                        <ProgressIndicator progress="0.7" prefWidth="80" prefHeight="80"/>
-                    </VBox>
-                    <VBox alignment="CENTER" spacing="5.0"
-                          style="-fx-background-color: #E8F5E9; -fx-padding: 20; -fx-background-radius: 10;">
-                        <Label text="Sleep"/>
-                        <ProgressIndicator progress="0.8" prefWidth="80" prefHeight="80"/>
-                    </VBox>
-                </HBox>
-                -->
-
-                <!-- User Statistics Chart -->
-                <VBox spacing="10.0"
-                      style="-fx-background-color: #f5f5f5; -fx-padding: 20; -fx-background-radius: 10;">
-                    <Label fx:id="statsTitleLabel"
-                           text="User's Current Progress So Far">
-                        <font>
-                            <Font name="System Bold" size="18.0"/>
-                        </font>
-                    </Label>
-                    <LineChart fx:id="progressChart" animated="true"
-                               legendVisible="true" prefHeight="300.0"
-                               title="Progress Over Time">
-                        <xAxis>
-                            <CategoryAxis fx:id="xAxis" label="Date"/>
-                        </xAxis>
-                        <yAxis>
-                            <NumberAxis fx:id="yAxis" label="Value"/>
-                        </yAxis>
+                <Label text="Dashboard Overview" styleClass="title"/>
+                <VBox spacing="10.0" styleClass="card">
+                    <Label fx:id="statsTitleLabel" text="User's Current Progress So Far" styleClass="subtitle"/>
+                    <LineChart fx:id="progressChart" animated="true" legendVisible="true"
+                               prefHeight="300.0" title="Progress Over Time">
+                        <xAxis><CategoryAxis fx:id="xAxis" label="Date"/></xAxis>
+                        <yAxis><NumberAxis fx:id="yAxis" label="Value"/></yAxis>
                     </LineChart>
                 </VBox>
-
-                <!-- Summary / Stats Area -->
-                <VBox spacing="10.0"
-                      style="-fx-background-color: #FAFAFA; -fx-padding: 20; -fx-background-radius: 10;">
-                    <Label text="Your Stats Summary">
-                        <font>
-                            <Font name="System Bold" size="18.0"/>
-                        </font>
-                    </Label>
+                <VBox spacing="10.0" styleClass="card">
+                    <Label text="Your Stats Summary" styleClass="subtitle"/>
                     <Label fx:id="statsLabel" text="No stats available"/>
                 </VBox>
             </VBox>

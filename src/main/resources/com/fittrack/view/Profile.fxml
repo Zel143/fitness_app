@@ -1,67 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<VBox spacing="20.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fittrack.controller.ProfileController">
-   <padding>
-      <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
-   </padding>
-   
-   <!-- Welcome Label -->
-   <Label fx:id="welcomeLabel" text="My Profile">
-      <font>
-         <Font name="System Bold" size="24.0" />
-      </font>
-   </Label>
-   
-   <!-- Profile Form -->
-   <GridPane hgap="10.0" vgap="15.0">
-      <columnConstraints>
-         <ColumnConstraints minWidth="100.0" />
-         <ColumnConstraints minWidth="200.0" />
-      </columnConstraints>
-      
-      <!-- Age -->
-      <Label text="Age:" GridPane.rowIndex="0" />
-      <TextField fx:id="ageField" promptText="Enter your age" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-      
-      <!-- Gender -->
-      <Label text="Gender:" GridPane.rowIndex="1" />
-      <ComboBox fx:id="genderComboBox" promptText="Select gender" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="200.0" />
-      
-      <!-- Height -->
-      <Label text="Height (cm):" GridPane.rowIndex="2" />
-      <TextField fx:id="heightField" promptText="Enter height in cm" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-      
-      <!-- Weight -->
-      <Label text="Weight (kg):" GridPane.rowIndex="3" />
-      <TextField fx:id="weightField" promptText="Enter weight in kg" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-      
-      <!-- Fitness Level -->
-      <Label text="Fitness Level:" GridPane.rowIndex="4" />
-      <ComboBox fx:id="fitnessLevelComboBox" promptText="Select fitness level" GridPane.columnIndex="1" GridPane.rowIndex="4" prefWidth="200.0" />
-   </GridPane>
-   
-   <!-- Message Label -->
-   <Label fx:id="messageLabel" />
-   
-   <!-- Buttons -->
-   <HBox spacing="10.0" alignment="CENTER">
-      <Button text="Save Profile" onAction="#handleSaveButtonAction" prefWidth="150.0">
-         <font>
-            <Font size="14.0" />
-         </font>
-      </Button>
-      <Button text="Dashboard" onAction="#handleDashboardButtonAction" prefWidth="150.0" />
-      <Button text="Logout" onAction="#handleLogoutButtonAction" prefWidth="150.0" />
-   </HBox>
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.fittrack.controller.ProfileController"
+      spacing="25.0"
+      alignment="TOP_CENTER"
+      stylesheets="@src/main/resources/com/fittrack/view/styleSheet.css">
+
+    <padding>
+        <Insets top="30" right="40" bottom="30" left="40"/>
+    </padding>
+
+    <!-- Title -->
+    <Label fx:id="welcomeLabel" text="My Profile" styleClass="title"/>
+
+    <!-- Profile Card -->
+    <VBox spacing="20.0" styleClass="card">
+        <GridPane hgap="15.0" vgap="15.0">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="40.0"/>
+                <ColumnConstraints percentWidth="60.0"/>
+            </columnConstraints>
+
+            <!-- Age -->
+            <Label text="Age:" GridPane.rowIndex="0"/>
+            <TextField fx:id="ageField" promptText="Enter your age"
+                       GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+            <!-- Gender -->
+            <Label text="Gender:" GridPane.rowIndex="1"/>
+            <ComboBox fx:id="genderComboBox" promptText="Select gender"
+                      GridPane.columnIndex="1" GridPane.rowIndex="1"
+                      prefWidth="200.0"/>
+
+            <!-- Height -->
+            <Label text="Height (cm):" GridPane.rowIndex="2"/>
+            <TextField fx:id="heightField" promptText="Enter height in cm"
+                       GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+            <!-- Weight -->
+            <Label text="Weight (kg):" GridPane.rowIndex="3"/>
+            <TextField fx:id="weightField" promptText="Enter weight in kg"
+                       GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+            <!-- Fitness Level -->
+            <Label text="Fitness Level:" GridPane.rowIndex="4"/>
+            <ComboBox fx:id="fitnessLevelComboBox" promptText="Select fitness level"
+                      GridPane.columnIndex="1" GridPane.rowIndex="4"
+                      prefWidth="200.0"/>
+        </GridPane>
+    </VBox>
+
+    <!-- Message -->
+    <Label fx:id="messageLabel"/>
+
+    <!-- Buttons -->
+    <HBox spacing="15.0" alignment="CENTER">
+        <Button text="💾 Save Profile"
+                onAction="#handleSaveButtonAction"
+                styleClass="sidebar-button"/>
+        <Button text="🏠 Dashboard"
+                onAction="#handleDashboardButtonAction"
+                styleClass="sidebar-button"/>
+        <Button text="🚪 Logout"
+                onAction="#handleLogoutButtonAction"
+                styleClass="logout-button"/>
+    </HBox>
 </VBox>
