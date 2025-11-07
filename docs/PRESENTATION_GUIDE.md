@@ -191,7 +191,93 @@ if (user != null) {
 
 ---
 
-### Feature 4: Progress Tracking
+### Feature 4: Workout Management (Unified Interface)
+**Flow**: `WorkoutPlansController.java` → `DatabaseManager` → **TabPane Navigation**
+
+**Unified Workouts Screen with Two Tabs**:
+
+#### **Workout Plans Tab**:
+- Create and manage workout plans
+- Plan details:
+  - Name, description
+  - Difficulty level (Beginner, Intermediate, Advanced, Expert)
+  - Duration in weeks
+  - Target goals
+- View all workout plans in TableView
+- Delete plans with confirmation
+- Database-backed persistence
+
+#### **Workout Logs Tab**:
+- **Log individual workout sessions**:
+  - Exercise name (TextField input)
+  - Sets, reps, weight used
+  - Date selection (DatePicker)
+- **View complete workout history** in TableView
+- **CRUD Operations**:
+  - Add new workout entries
+  - Delete selected entries
+  - Clear all workout logs
+- **Dashboard Integration**: Today's workouts displayed on main dashboard
+- Automatic filtering by user ID
+- Real-time table updates after operations
+
+**Demo**:
+- Show TabPane with "Workout Plans" and "Workout Logs" tabs
+- **Plans Tab**: Create a new workout plan, view in table, delete a plan
+- **Logs Tab**: 
+  - Add a workout entry (exercise name, sets, reps, weight, date)
+  - Show entry appears in table
+  - Navigate to Dashboard → See today's workout in "Today's Exercises" table
+  - Return to Workouts → Delete a log entry
+  - Demonstrate "Clear All Logs" functionality
+- Console output shows:
+  - `✓ Workout plan saved with ID: X`
+  - `✓ Workout log saved with ID: Y`
+  - `✓ Workout log deleted successfully`
+
+### Talking Points:
+> "The Workouts screen uses a TabPane to unify workout planning and logging in one interface. Users can design workout plans in the Plans tab, then track actual workout sessions in the Logs tab. The logged workouts are integrated with the Dashboard - you can see today's exercises right on the main screen. This gives users a quick overview of their daily activity without navigating away from the dashboard."
+
+---
+
+### Feature 5: Progress Tracking with Dashboard Integration
+**Flow**: `ProgressController.java` → `DatabaseManager.getWeightHistory()` → **Dashboard LineChart**
+
+**Features**:
+- **Weight tracking with LineChart visualization**:
+  - Interactive JavaFX LineChart
+  - X-axis: Date, Y-axis: Weight (kg)
+  - Automatic chart updates on data changes
+- **Statistics Dashboard**:
+  - Current weight (most recent entry)
+  - Starting weight (earliest entry)
+  - Weight change (kg and percentage)
+  - Status indicator (weight loss/gain/maintaining)
+- **Weight History Table**: View all entries with date and weight
+- Add/delete weight entries
+- **Dashboard Integration**: Progress chart displayed on main dashboard
+- Date-based sorting (newest first)
+- Database persistence and reload
+
+**Demo**:
+- Navigate to "Track Progress"
+- Show LineChart with weight history
+- Display statistics panel (current: 70.5kg, starting: 75.0kg, change: -4.5kg / -6%)
+- Add new weight entry (e.g., 70.0kg for today)
+- **Chart updates in real-time**
+- **Statistics recalculate automatically**
+- Return to **Dashboard** → See progress chart displayed on main screen
+- Delete a weight entry → Chart updates immediately
+- Console shows:
+  - `✓ Weight history saved with ID: X`
+  - `✓ Weight history deleted successfully`
+
+### Talking Points:
+> "Progress tracking uses JavaFX's LineChart to visualize weight changes over time. The chart integrates with the Dashboard, so users can see their progress trends without leaving the main screen. We calculate statistics like total weight change and percentage loss/gain using the earliest and most recent entries. The data is sorted DESC by date, ensuring the latest entry is always at index 0."
+
+---
+
+### Feature 6: Food Logging
 **Flow**: `ProgressController.java` → `DatabaseManager.getWeightHistory()`
 
 **Features**:

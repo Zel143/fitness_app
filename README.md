@@ -30,6 +30,10 @@ This is a **complete, self-contained desktop application** with all core feature
   - Exercise name, sets, reps, and weight used
   - Automatically filters for today's date
   - Quick overview of daily workout activity
+- **Interactive Progress Chart**: LineChart visualization showing weight history over time
+  - Displays weight trends directly on the dashboard
+  - Real-time updates when weight entries are added
+  - Quick access to progress tracking from main screen
 - User greeting with personalized information
 - Clean, intuitive interface design
 
@@ -51,15 +55,20 @@ This is a **complete, self-contained desktop application** with all core feature
 - Edit and delete goals with confirmation dialogs
 - Database-backed persistence
 
-### 💪 **Workout Plan Management**
-- Design comprehensive workout plans
-- Track plan details:
-  - Plan name and description
-  - Difficulty level
-  - Duration (in weeks)
-  - Target goals
-- Save and manage multiple workout plans
+### 💪 **Workout Management**
+- **Unified Workouts Screen** with TabPane interface:
+  - **Workout Plans Tab**: Design and manage workout plans
+    - Plan name and description
+    - Difficulty level
+    - Duration (in weeks)
+    - Target goals
+  - **Workout Logs Tab**: Track individual workout sessions
+    - Log exercises with sets, reps, and weight
+    - Date-based workout tracking
+    - View complete workout history
+    - Add, delete, and clear workout entries
 - Full CRUD operations with database integration
+- Seamless switching between planning and logging
 
 ### 📈 **Progress Tracking**
 - **Interactive Weight Chart**: Visualize weight changes over time with JavaFX LineChart
