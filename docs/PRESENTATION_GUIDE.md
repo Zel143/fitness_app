@@ -654,25 +654,188 @@ WeightHistory earliest = weightHistoryList.get(size - 1);  // Oldest
 ## 12. **Documentation** (2 minutes)
 
 ### Available Documentation:
-- **[README.md](../README.md)** - Project overview and features
+- **[README.md](../README.md)** - Comprehensive project overview with appendices
+  - Core features and architecture
+  - Setup and installation instructions
+  - Troubleshooting guide
+  - **Appendix A:** Database Migration (MySQL → SQLite)
+  - **Appendix B:** Data Persistence Implementation
+  - **Appendix C:** Code Optimizations
+  - **Appendix D:** SQLite vs MySQL Reference
+  - **Appendix E:** Database Management
 - **[QUICKSTART.md](../QUICKSTART.md)** - Getting started guide
-- **[PROJECT_SUMMARY.md](../PROJECT_SUMMARY.md)** - Comprehensive documentation
 - **[SETUP_FOR_GROUPMATES.md](../SETUP_FOR_GROUPMATES.md)** - Team setup instructions
-- **[DATABASE_MIGRATION_SUMMARY.md](../DATABASE_MIGRATION_SUMMARY.md)** - MySQL to SQLite migration
-- **[DATA_PERSISTENCE_FIXED.md](../DATA_PERSISTENCE_FIXED.md)** - Database persistence fixes
-- **[OPTIMIZATION_SUMMARY.md](../OPTIMIZATION_SUMMARY.md)** - Performance improvements
 - **[TESTING_CHECKLIST.md](../TESTING_CHECKLIST.md)** - Complete testing guide
-- **[USE OF AI DISCLOSURE.md](../USE%20OF%20AI%20DISCLOSURE.md)** - AI usage transparency
+- **[USE OF AI DISCLOSURE.md](../USE%20OF%20AI%20DISCLOSURE.md)** - AI usage transparency with technical details
 - **[TODO.md](../TODO.md)** - Future enhancements
 
+### Consolidated Technical Documentation:
+
+All technical details from these documents are now compiled into the main documentation:
+- ✅ **DATABASE_MIGRATION_SUMMARY.md** → README Appendix A
+- ✅ **DATA_PERSISTENCE_FIXED.md** → README Appendix B
+- ✅ **OPTIMIZATION_SUMMARY.md** → README Appendix C
+- ✅ **LOGIC_ERRORS_ANALYSIS.md** → USE OF AI DISCLOSURE
+
 ### Talking Points:
-> "We maintain comprehensive documentation for all aspects of the project. From quick-start guides to detailed technical documentation, everything is well-documented for future developers and team members."
+> "We maintain comprehensive, consolidated documentation. All technical details about database migration, data persistence fixes, and code optimizations are compiled into appendices in the README. This makes it easier to find information without searching through multiple files. Our USE OF AI DISCLOSURE document includes detailed technical context about all fixes and improvements."
 
 ---
 
-## 13. **Future Enhancements** (2 minutes)
+## 13. **Technical Deep Dive: Database Migration** (5 minutes)
 
-Reference [TODO.md](../TODO.md):
+### Migration Challenge Details:
+
+**Why We Migrated:**
+- MySQL required server installation and configuration
+- Team members had setup difficulties
+- Deployment complexity for end users
+- SQLite provides zero-configuration, single-file portability
+
+**Technical Changes Made:**
+
+1. **Dependency Updates (pom.xml):**
+```xml
+<!-- REMOVED -->
+<dependency>
+    <groupId>com.mysql</groupId>
+    <artifactId>mysql-connector-j</artifactId>
+</dependency>
+
+<!-- ADDED -->
+<dependency>
+    <groupId>org.xerial</groupId>
+    <artifactId>sqlite-jdbc</artifactId>
+    <version>3.44.1.0</version>
+</dependency>
+```
+
+2. **Connection String Changes:**
+```java
+// MySQL (Before)
+DB_URL = "jdbc:mysql://localhost:3306/fittrack_db"
+DB_USER = "fittrack_admin"
+DB_PASSWORD = "mySQL"
+
+// SQLite (After)
+DB_FILE = "fittrack.db"
+DB_URL = "jdbc:sqlite:" + DB_FILE
+// No username/password needed!
+```
+
+3. **SQL Syntax Conversion:**
+```sql
+-- MySQL syntax
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    age DOUBLE
+) ENGINE=InnoDB;
+
+-- SQLite syntax
+CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    age REAL
+);
+```
+
+**Critical Fix: Auto-Generated IDs**
+
+The most challenging issue was retrieving auto-generated primary keys:
+
+```java
+// MySQL approach (doesn't work with SQLite)
+PreparedStatement pstmt = conn.prepareStatement(sql, 
+    Statement.RETURN_GENERATED_KEYS);
+pstmt.executeUpdate();
+ResultSet keys = pstmt.getGeneratedKeys(); // ❌ SQLiteException
+
+// SQLite solution
+PreparedStatement pstmt = conn.prepareStatement(sql);
+pstmt.executeUpdate();
+try (Statement stmt = conn.createStatement();
+     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+    if (rs.next()) {
+        generatedId = rs.getInt(1);
+    }
+}
+```
+
+**Impact:**
+- Applied to 5 save methods in DatabaseManager
+- Fixed data persistence across all features
+- Ensured UI displays correct IDs for edit/delete operations
+
+### Talking Points:
+> "The database migration was our biggest technical challenge. We had to convert all SQL syntax from MySQL to SQLite, update connection handling, and solve the auto-generated ID retrieval issue. The solution using `last_insert_rowid()` required updating every save method in DatabaseManager. This fixed all data persistence problems and made the application truly portable."
+
+---
+
+## 14. **Technical Deep Dive: Data Persistence Architecture** (3 minutes)
+
+### Data Flow Pattern:
+
+```
+User Action → Input Validation → Database Save → 
+Get Auto-Generated ID → Reload from Database → 
+Update UI with Fresh Data → User Sees Changes
+```
+
+### Why This Pattern?
+
+**Problem:** UI state drift from database state
+- Users could add/delete items
+- UI showed changes but with incorrect IDs
+- Editing or deleting would fail due to ID mismatch
+
+**Solution:** Database as single source of truth
+- After every save/delete, reload ALL data from database
+- UI always reflects actual database state
+- No manual ID tracking needed
+- Prevents inconsistencies
+
+### Controller Implementation Example:
+
+```java
+@FXML
+private void handleAddWeightButtonAction() {
+    // 1. Validate input
+    if (weightField.getText().isEmpty()) {
+        return;
+    }
+    
+    // 2. Save to database
+    WeightHistory entry = new WeightHistory(
+        currentUser.getUserId(),
+        weight,
+        date
+    );
+    dbManager.saveWeightHistory(entry); // Returns generated ID
+    
+    // 3. Reload from database (CRITICAL!)
+    loadWeightHistory(); // Fetches ALL weight entries fresh
+    
+    // 4. Update chart with fresh data
+    updateChart();
+    
+    // 5. Clear form
+    weightField.clear();
+}
+```
+
+**Benefits:**
+- ✅ Data always consistent between UI and database
+- ✅ No manual ID management
+- ✅ Survives app restarts
+- ✅ Simplifies debugging
+
+### Talking Points:
+> "Our data persistence architecture follows a strict pattern: validate, save, reload, display. After every database operation, we reload all data from the database rather than trying to manually update the UI. This 'database as single source of truth' approach prevents inconsistencies and ensures data survives app restarts. It's slightly less efficient but much more reliable for a desktop application."
+
+---
+
+## 15. **Future Enhancements** (2 minutes)
 
 ### Planned Features:
 - Exercise library with search functionality
@@ -691,11 +854,11 @@ Reference [TODO.md](../TODO.md):
 - Automated testing framework
 
 ### Talking Points:
-> "We have an extensive roadmap of future features. Next priorities include an exercise library, workout logging, and advanced analytics. We're also planning data export/import functionality and theme customization."
+> "We have an extensive roadmap of future features. Next priorities include an exercise library, workout logging, and advanced analytics. We're also planning data export/import functionality and theme customization. On the technical side, we could implement connection pooling and caching for better performance, though the current architecture is sufficient for desktop use."
 
 ---
 
-## 14. **Q&A Preparation**
+## 16. **Q&A Preparation**
 
 ### Common Questions:
 

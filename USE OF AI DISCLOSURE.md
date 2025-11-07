@@ -669,7 +669,258 @@ This project was developed as a learning exercise with the assistance of GitHub 
 
 ---
 
-## 📚 20. References & Resources
+## � 20. Consolidated Technical Challenges & Solutions
+
+This section consolidates all major technical challenges encountered and how they were solved (with AI assistance).
+
+### Challenge 1: SQLite `last_insert_rowid()` Implementation
+
+**Problem:**
+```java
+// This MySQL approach doesn't work with SQLite
+PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+pstmt.executeUpdate();
+ResultSet keys = pstmt.getGeneratedKeys(); // ❌ SQLFeatureNotSupportedException
+```
+
+**AI Contribution:**
+- Identified that SQLite JDBC driver doesn't support `getGeneratedKeys()`
+- Suggested using SQLite's `last_insert_rowid()` function
+- Provided implementation pattern
+
+**Human Contribution:**
+- Applied the pattern to 5 different save methods
+- Tested each method thoroughly
+- Updated all controllers to use returned IDs
+- Debugged edge cases (null returns, transaction issues)
+
+**Final Solution:**
+```java
+PreparedStatement pstmt = conn.prepareStatement(sql);
+pstmt.executeUpdate();
+try (Statement stmt = conn.createStatement();
+     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+    if (rs.next()) {
+        generatedId = rs.getInt(1);
+    }
+}
+```
+
+**Files Modified:**
+- `DatabaseManager.java` (5 methods)
+- `GoalsController.java`
+- `ProgressController.java`
+- `FoodLogController.java`
+- `WorkoutPlansController.java`
+
+---
+
+### Challenge 2: Data Synchronization Between UI and Database
+
+**Problem:**
+- UI showed data immediately after adding
+- But IDs were wrong (remained -1 or 0)
+- Editing/deleting failed due to ID mismatch
+- Data didn't persist after app restart
+
+**AI Contribution:**
+- Suggested "reload from database" pattern
+- Explained importance of database as single source of truth
+- Provided example reload implementations
+
+**Human Contribution:**
+- Designed consistent data flow pattern for all controllers
+- Implemented reload methods (`loadWeightHistory()`, `loadGoals()`, etc.)
+- Added proper error handling
+- Tested data persistence across app restarts
+- Fixed statistics calculation bugs (DESC ordering)
+
+**Final Pattern:**
+```java
+@FXML
+private void handleAddButtonAction() {
+    // 1. Validate
+    // 2. Create object
+    // 3. Save to database (returns ID)
+    // 4. Reload ALL data from database
+    // 5. Update UI
+    // 6. Clear form
+}
+```
+
+**Impact:** Fixed data persistence in all 4 main features (Goals, Progress, Food Log, Workouts)
+
+---
+
+### Challenge 3: Statistics Calculation with DESC Ordering
+
+**Problem:**
+```java
+// Weight entries sorted DESC by date (newest first)
+List<WeightHistory> history = dbManager.getWeightHistory(userId);
+// index 0 = NEWEST, last index = OLDEST
+// But code assumed index 0 = oldest!
+
+double startingWeight = history.get(0).getWeight(); // ❌ WRONG
+double currentWeight = history.get(history.size()-1).getWeight(); // ❌ WRONG
+```
+
+**AI Contribution:**
+- Helped understand SQL ORDER BY DESC behavior
+- Explained indexing in reversed lists
+- Suggested adding comments to clarify
+
+**Human Contribution:**
+- Discovered the bug through testing
+- Analyzed database query results
+- Fixed calculation logic
+- Added clear documentation
+- Verified with multiple test cases
+
+**Solution:**
+```java
+// Correct understanding: DESC order = newest first
+double currentWeight = history.get(0).getWeight(); // ✅ index 0 = newest
+double startingWeight = history.get(history.size()-1).getWeight(); // ✅ last = oldest
+double weightChange = currentWeight - startingWeight;
+```
+
+---
+
+### Challenge 4: JavaFX PauseTransition vs Thread.sleep()
+
+**Problem:**
+```java
+// Blocking the JavaFX Application Thread
+Thread.sleep(2000); // ❌ Freezes entire UI for 2 seconds
+SceneSwitcher.switchTo("Login.fxml", event);
+```
+
+**AI Contribution:**
+- Identified that `Thread.sleep()` blocks JavaFX thread
+- Suggested `PauseTransition` for non-blocking delays
+- Provided implementation example
+
+**Human Contribution:**
+- Refactored RegisterController to use PauseTransition
+- Tested UI responsiveness
+- Applied pattern consistently
+
+**Solution:**
+```java
+PauseTransition pause = new PauseTransition(Duration.seconds(2));
+pause.setOnFinished(e -> {
+    try {
+        SceneSwitcher.switchTo("Login.fxml", event);
+    } catch (IOException ex) {
+        ex.printStackTrace();
+    }
+});
+pause.play();
+```
+
+---
+
+### Challenge 5: Dashboard Chart Visibility and Styling
+
+**Problem:**
+- Chart labels (title, axes) invisible due to white/light text on light background
+- Y-axis label "Weight (kg)" truncated or not fully visible
+- Chart blended into gray dashboard background
+- Legend hard to read without background
+
+**AI Contribution:**
+- Suggested JavaFX CSS properties for text styling
+- Provided `Node.lookup()` pattern for dynamic styling
+- Recommended white background with border for distinction
+- Suggested font sizes and bold styling for readability
+
+**Human Contribution:**
+- Iteratively tested different styling approaches
+- Debugged chart visibility issues through multiple rounds
+- Determined optimal sizes (title 16px, labels 14px, ticks 12px)
+- Calculated proper Y-axis padding (10px) for full label visibility
+- Designed cohesive color scheme (white bg, gray border, black text)
+- Added chart to dashboard integration
+- Verified presentation-ready appearance
+
+**Final Implementation:**
+
+*FXML (Dashboard.fxml):*
+```xml
+<VBox style="-fx-background-color: white; -fx-padding: 20; 
+             -fx-background-radius: 10; -fx-border-color: #cccccc; 
+             -fx-border-width: 2; -fx-border-radius: 10;">
+    <LineChart fx:id="progressChart" prefHeight="320.0" minHeight="320.0"
+               title="Weight Progress Over Time"
+               style="-fx-background-color: white;">
+        <yAxis>
+            <NumberAxis fx:id="yAxis" label="Weight (kg)" 
+                        style="-fx-tick-label-fill: black;" 
+                        side="LEFT"/>
+        </yAxis>
+    </LineChart>
+</VBox>
+```
+
+*Controller (DashboardController.java):*
+```java
+// Programmatic styling via Node.lookup()
+progressChart.applyCss();
+progressChart.layout();
+
+var chartTitle = progressChart.lookup(".chart-title");
+if (chartTitle != null) {
+    chartTitle.setStyle("-fx-text-fill: black; -fx-font-size: 16px; -fx-font-weight: bold;");
+}
+
+var yAxisLabel = yAxis.lookup(".axis-label");
+if (yAxisLabel != null) {
+    yAxisLabel.setStyle("-fx-text-fill: black; -fx-font-size: 14px; 
+                        -fx-font-weight: bold; -fx-padding: 0 10 0 0;");
+}
+
+var legend = progressChart.lookup(".chart-legend");
+if (legend != null) {
+    legend.setStyle("-fx-background-color: white; -fx-border-color: #cccccc; 
+                    -fx-border-width: 1; -fx-padding: 8;");
+}
+```
+
+**Impact:** Professional, presentation-ready dashboard with fully visible, readable chart
+
+---
+
+### Challenge 6: NULL Value Handling in SQLite
+
+**Problem:**
+```java
+// Optional fields could be null
+pstmt.setObject(1, user.age); // ❌ Causes issues with SQLite when null
+```
+
+**AI Contribution:**
+- Explained SQLite's strict NULL handling
+- Suggested explicit `setNull()` for null values
+- Provided conditional check pattern
+
+**Human Contribution:**
+- Applied to all save/update methods with optional fields
+- Tested with various null/non-null combinations
+- Ensured backward compatibility
+
+**Solution:**
+```java
+if (user.age != null) {
+    pstmt.setInt(1, user.age);
+} else {
+    pstmt.setNull(1, java.sql.Types.INTEGER);
+}
+```
+
+---
+
+## �📚 21. References & Resources
 
 ### AI Tools Used:
 - **GitHub Copilot** - Primary code completion and suggestion tool
@@ -691,8 +942,18 @@ This project represents a balanced collaboration between human creativity and AI
 - Learning best practices
 - Implementing security features
 - Improving code quality
+- Solving technical challenges (database migration, UI styling, data persistence)
 
-However, the core intellectual work—understanding requirements, designing architecture, solving problems, and ensuring quality—was performed by human developers.
+However, the core intellectual work—understanding requirements, designing architecture, solving problems, ensuring quality, and making all design decisions—was performed by human developers.
+
+**Major Human Contributions:**
+- ✅ Database migration strategy and execution
+- ✅ Data persistence architecture design
+- ✅ Bug discovery and debugging process
+- ✅ Dashboard UI/UX design decisions
+- ✅ Testing and validation
+- ✅ Code integration and refactoring
+- ✅ Documentation compilation and organization
 
 **We stand by this disclosure and welcome any questions about our use of AI in this project.**
 

@@ -601,6 +601,189 @@ After fresh installation, register a new account. There are no default credentia
 
 ---
 
+## 📚 Appendices
+
+### Appendix A: Database Migration (MySQL → SQLite)
+
+The application was successfully migrated from MySQL to SQLite for better portability and zero-configuration deployment.
+
+#### What Changed:
+
+**Dependencies (`pom.xml`):**
+- Removed: `mysql-connector-j`
+- Added: `sqlite-jdbc:3.44.1.0`
+
+**Database Configuration (`DatabaseManager.java`):**
+- Connection URL: `jdbc:mysql://localhost:3306/fittrack_db` → `jdbc:sqlite:fittrack.db`
+- Removed username/password authentication
+- SQL syntax updates:
+  - `INT AUTO_INCREMENT` → `INTEGER AUTOINCREMENT`
+  - `VARCHAR(n)` → `TEXT`
+  - `DOUBLE` → `REAL`
+  - Removed `ENGINE=InnoDB`
+
+**Benefits:**
+
+| Feature | MySQL (Before) | SQLite (After) |
+|---------|----------------|----------------|
+| **Setup** | Complex (server install) | Zero configuration |
+| **Configuration** | Username/password required | None needed |
+| **Portability** | Server-dependent | Single file |
+| **Backup** | SQL dump commands | Copy file |
+| **Performance** | Network overhead | Direct file access |
+
+### Appendix B: Data Persistence Implementation
+
+All CRUD operations use SQLite-specific methods for retrieving auto-generated IDs.
+
+#### Key Technical Solution:
+
+**Problem:** SQLite JDBC driver doesn't support `getGeneratedKeys()` like MySQL.
+
+**Solution:** Use SQLite's `last_insert_rowid()` function:
+
+```java
+// MySQL approach (doesn't work with SQLite)
+PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+pstmt.executeUpdate();
+ResultSet keys = pstmt.getGeneratedKeys();
+
+// SQLite approach (works correctly)
+PreparedStatement pstmt = conn.prepareStatement(sql);
+pstmt.executeUpdate();
+try (Statement stmt = conn.createStatement();
+     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+    if (rs.next()) {
+        generatedId = rs.getInt(1);
+    }
+}
+```
+
+**Updated Methods:**
+- `saveGoal()` - Returns generated goal ID
+- `saveWorkoutPlan()` - Returns generated plan ID
+- `saveWeightHistory()` - Returns generated weight entry ID
+- `saveFoodLog()` - Returns generated food log ID
+- `saveWorkoutLog()` - Returns generated workout log ID
+
+**Data Flow:**
+```
+User Action → Validation → Database Save → Get Auto-Generated ID → 
+Reload from Database → Update UI with Fresh Data
+```
+
+This ensures:
+- ✅ Data persists after app restart
+- ✅ Correct IDs for edit/delete operations
+- ✅ No duplicate entries in UI
+- ✅ Database is single source of truth
+
+### Appendix C: Code Optimizations
+
+#### Performance Improvements:
+
+1. **Immutable Database Managers:**
+   - Changed to `final DatabaseManager dbManager` across all controllers
+   - Prevents accidental reassignment
+   - Better memory management
+
+2. **Non-blocking UI Updates:**
+   - Replaced `Thread.sleep()` with JavaFX `PauseTransition`
+   - Registration screen now uses asynchronous delays
+   - Smoother user experience
+
+3. **Generic Event Handling:**
+   - `SceneSwitcher` now accepts generic `Event` type
+   - Supports both `ActionEvent` (buttons) and `MouseEvent` (labels)
+   - More flexible navigation system
+
+#### Code Quality Improvements:
+
+1. **Removed Duplicate Imports:**
+   - Cleaned up `@FXML` duplicates
+   - Organized import statements
+   - Better code readability
+
+2. **Helper Methods:**
+   - Added `showError()` and `showSuccess()` methods
+   - Reduced code duplication
+   - DRY (Don't Repeat Yourself) principle
+
+3. **Updated Documentation:**
+   - Removed outdated "MOCK DATA" comments
+   - Accurate reflection of database usage
+   - Better code comments
+
+### Appendix D: SQLite vs MySQL Reference
+
+For developers familiar with MySQL, here are the key differences:
+
+| Feature | MySQL | SQLite |
+|---------|-------|--------|
+| **Auto-increment** | `AUTO_INCREMENT` | `AUTOINCREMENT` |
+| **Get last insert ID** | `getGeneratedKeys()` | `last_insert_rowid()` |
+| **String type** | `VARCHAR(n)` | `TEXT` |
+| **Decimal type** | `DOUBLE`, `DECIMAL` | `REAL` |
+| **Engine** | `ENGINE=InnoDB` | Not used |
+| **NULL handling** | Lenient | Strict (use `setNull()`) |
+| **Server** | Required | Embedded |
+| **Configuration** | Complex | Zero-config |
+| **Concurrency** | High | Single-writer |
+| **Best for** | Multi-user, networked | Single-user, desktop |
+
+### Appendix E: Database Management
+
+#### Viewing Database Contents:
+
+**Option 1: DB Browser for SQLite (Recommended)**
+1. Download from [sqlitebrowser.org](https://sqlitebrowser.org/)
+2. Open `fittrack.db` from project directory
+3. Browse all tables visually
+
+**Option 2: SQLite Command Line**
+```bash
+sqlite3 fittrack.db
+.tables                    # List all tables
+.schema users             # View table structure
+SELECT * FROM users;      # Query data
+.exit                     # Exit SQLite
+```
+
+#### Backup Strategies:
+
+**Simple File Copy:**
+```powershell
+# Windows
+Copy-Item "fittrack.db" -Destination "backup\fittrack-$(Get-Date -Format 'yyyyMMdd').db"
+
+# Mac/Linux
+cp fittrack.db backup/fittrack-$(date +%Y%m%d).db
+```
+
+**Export to SQL:**
+```bash
+sqlite3 fittrack.db .dump > backup.sql
+```
+
+**Restore from Backup:**
+```bash
+sqlite3 fittrack.db < backup.sql
+```
+
+#### Database Reset:
+
+```powershell
+# Windows
+Remove-Item "fittrack.db"
+
+# Mac/Linux  
+rm fittrack.db
+
+# Database will be recreated on next app launch
+```
+
+---
+
 **Version**: 1.0  
 **Last Updated**: November 2025  
 **Status**: ✅ Production Ready
