@@ -6,8 +6,12 @@ import com.fittrack.model.User;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 
 /**
@@ -21,6 +25,9 @@ public class DashboardController {
 
     @FXML
     private Label statsLabel;
+
+    @FXML
+    private CheckBox themeToggle;
 
     private User currentUser;
 
@@ -39,113 +46,73 @@ public class DashboardController {
             userLabel.setText("Welcome, Guest!");
             System.out.println("⚠ Warning: No user logged in");
         }
+
+        Platform.runLater(() -> {
+            Scene scene = userLabel.getScene();
+            if (scene != null) {
+                scene.getStylesheets().add(getClass().getResource("src/main/styles/styleSheet.css").toExternalForm());
+
+                Parent root = scene.getRoot();
+                root.getStyleClass().addAll("base", "light");
+            }
+
+            if (themeToggle != null) {
+                themeToggle.selectedProperty().addListener((obs, oldVal, newVal) -> toggleTheme(newVal));
+            }
+        });
     }
 
-    /**
-     * Update the stats display based on user profile
-     */
+    private void toggleTheme(boolean darkMode) {
+        Scene scene = themeToggle.getScene();
+        if (scene != null) {
+            Parent root = scene.getRoot();
+            root.getStyleClass().removeAll("light", "dark");
+            root.getStyleClass().add(darkMode ? "dark" : "light");
+        }
+    }
+
     private void updateStatsDisplay() {
         if (currentUser.hasCompleteProfile()) {
             StringBuilder stats = new StringBuilder();
             stats.append("Age: ").append(currentUser.getAge()).append(" years\n");
             stats.append("Height: ").append(currentUser.getHeight()).append(" cm\n");
             stats.append("Weight: ").append(currentUser.getWeight()).append(" kg\n");
-            
+
             if (currentUser.getHeight() != null && currentUser.getWeight() != null) {
                 double heightInMeters = currentUser.getHeight() / 100.0;
                 double bmi = currentUser.getWeight() / (heightInMeters * heightInMeters);
                 stats.append(String.format("BMI: %.1f\n", bmi));
             }
-            
+
             if (currentUser.getFitnessLevel() != null) {
                 stats.append("Fitness Level: ").append(currentUser.getFitnessLevel());
             }
-            
+
             statsLabel.setText(stats.toString());
         } else {
             statsLabel.setText("Complete your profile to see your fitness stats!");
         }
     }
 
-    /**
-     * Handle the Profile button click
-     */
-    @FXML
-    private void handleProfileButtonAction(ActionEvent event) {
-        try {
-            SceneSwitcher.switchScene(event, "Profile.fxml", "FitTrack - Profile");
-        } catch (IOException e) {
-            System.err.println("✗ Error loading Profile: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+    // Navigation Handlers
+    @FXML private void handleProfileButtonAction(ActionEvent e) { switchScene(e, "Profile.fxml", "FitTrack - Profile"); }
+    @FXML private void handleGoalsButtonAction(ActionEvent e) { switchScene(e, "Goals.fxml", "FitTrack - My Goals"); }
+    @FXML private void handleWorkoutPlansButtonAction(ActionEvent e) { switchScene(e, "WorkoutPlans.fxml", "FitTrack - Workout Plans"); }
+    @FXML private void handleProgressButtonAction(ActionEvent e) { switchScene(e, "Progress.fxml", "FitTrack - Progress"); }
+    @FXML private void handleFoodLogButtonAction(ActionEvent e) { switchScene(e, "FoodLog.fxml", "FitTrack - Food Log"); }
 
-    /**
-     * Handle the Goals button click
-     */
     @FXML
-    private void handleGoalsButtonAction(ActionEvent event) {
-        try {
-            SceneSwitcher.switchScene(event, "Goals.fxml", "FitTrack - My Goals");
-        } catch (IOException e) {
-            System.err.println("✗ Error loading Goals: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Handle the Workout Plans button click
-     * ✅ THIS IS THE MISSING METHOD!
-     */
-    @FXML
-    private void handleWorkoutPlansButtonAction(ActionEvent event) {
-        try {
-            System.out.println("ℹ Workout Plans button clicked!");
-            SceneSwitcher.switchScene(event, "WorkoutPlans.fxml", "FitTrack - Workout Plans");
-            System.out.println("✓ WorkoutPlans screen loaded successfully!");
-        } catch (IOException e) {
-            System.err.println("✗ Error loading Workout Plans: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Handle the Progress button click
-     */
-    @FXML
-    private void handleProgressButtonAction(ActionEvent event) {
-        try {
-            SceneSwitcher.switchScene(event, "Progress.fxml", "FitTrack - Progress");
-        } catch (IOException e) {
-            System.err.println("✗ Error loading Progress: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Handle the Food Log button click
-     */
-    @FXML
-    private void handleFoodLogButtonAction(ActionEvent event) {
-        try {
-            SceneSwitcher.switchScene(event, "FoodLog.fxml", "FitTrack - Food Log");
-        } catch (IOException e) {
-            System.err.println("✗ Error loading Food Log: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Handle the Logout button click
-     */
-    @FXML
-    private void handleLogoutButtonAction(ActionEvent event) {
+    private void handleLogoutButtonAction(ActionEvent e) {
         SessionManager.getInstance().logout();
+        switchScene(e, "Login.fxml", "FitTrack - Login");
+    }
+
+    private void switchScene(ActionEvent e, String fxml, String title) {
         try {
-            SceneSwitcher.switchScene(event, "Login.fxml", "FitTrack - Login");
-        } catch (IOException e) {
-            System.err.println("✗ Error loading Login: " + e.getMessage());
-            e.printStackTrace();
+            SceneSwitcher.switchScene(e, fxml, title);
+        } catch (IOException ex) {
+            System.err.println("✗ Error loading " + fxml + ": " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
 }
