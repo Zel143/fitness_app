@@ -203,7 +203,8 @@ public class DatabaseManager {
      * Authenticates a user by checking their password.
      */
     public User login(String username, String password) {
-        String sql = "SELECT * FROM users WHERE username = ?";
+        // Use BINARY comparison to ensure case-sensitive username matching
+        String sql = "SELECT * FROM users WHERE username = ? COLLATE BINARY";
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -216,6 +217,7 @@ public class DatabaseManager {
                 System.out.println("DEBUG: Stored hash: " + storedHash.substring(0, 20) + "...");
                 System.out.println("DEBUG: Checking password...");
                 
+                // BCrypt.checkpw() is ALWAYS case-sensitive
                 if (BCrypt.checkpw(password, storedHash)) {
                     // Password is correct, create User object
                     User user = new User();
