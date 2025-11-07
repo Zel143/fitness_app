@@ -18,13 +18,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -43,9 +40,6 @@ public class DashboardController {
 
     @FXML
     private Label statsLabel;
-
-    @FXML
-    private CheckBox themeToggle;
     
     @FXML
     private LineChart<String, Number> progressChart;
@@ -117,31 +111,6 @@ public class DashboardController {
             repsColumn.setCellValueFactory(new PropertyValueFactory<>("reps"));
             weightColumn.setCellValueFactory(new PropertyValueFactory<>("weightUsed"));
             todayWorkoutTable.setItems(todayWorkouts);
-        }
-
-        /* DISABLED - Stylesheet causing NullPointerException
-        Platform.runLater(() -> {
-            Scene scene = userLabel.getScene();
-            if (scene != null) {
-                scene.getStylesheets().add(getClass().getResource("src/main/styles/styleSheet.css").toExternalForm());
-
-                Parent root = scene.getRoot();
-                root.getStyleClass().addAll("base", "light");
-            }
-
-            if (themeToggle != null) {
-                themeToggle.selectedProperty().addListener((obs, oldVal, newVal) -> toggleTheme(newVal));
-            }
-        });
-        */
-    }
-
-    private void toggleTheme(boolean darkMode) {
-        Scene scene = themeToggle.getScene();
-        if (scene != null) {
-            Parent root = scene.getRoot();
-            root.getStyleClass().removeAll("light", "dark");
-            root.getStyleClass().add(darkMode ? "dark" : "light");
         }
     }
 
@@ -351,6 +320,44 @@ public class DashboardController {
         progressChart.setTitle("Weight Progress Over Time");
         xAxis.setLabel("Date");
         yAxis.setLabel("Weight (kg)");
+        
+        // Set minimum chart size to ensure labels fit
+        progressChart.setMinHeight(300);
+        progressChart.setPrefHeight(300);
+        
+        // Apply CSS to make ALL chart text visible in black
+        progressChart.setStyle("-fx-text-fill: black;");
+        
+        // Make axis labels visible (the "Date" and "Weight (kg)" text)
+        xAxis.setStyle("-fx-tick-label-fill: black; -fx-font-size: 12px;");
+        yAxis.setStyle("-fx-tick-label-fill: black; -fx-font-size: 12px;");
+        
+        // Force layout to apply styles
+        progressChart.applyCss();
+        progressChart.layout();
+        
+        // Make chart title visible
+        var chartTitle = progressChart.lookup(".chart-title");
+        if (chartTitle != null) {
+            chartTitle.setStyle("-fx-text-fill: black; -fx-font-size: 16px; -fx-font-weight: bold;");
+        }
+        
+        // Make axis label text visible and BOLD (Date and Weight (kg))
+        var xAxisLabel = xAxis.lookup(".axis-label");
+        if (xAxisLabel != null) {
+            xAxisLabel.setStyle("-fx-text-fill: black; -fx-font-size: 14px; -fx-font-weight: bold;");
+        }
+        
+        var yAxisLabel = yAxis.lookup(".axis-label");
+        if (yAxisLabel != null) {
+            yAxisLabel.setStyle("-fx-text-fill: black; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 0 10 0 0;");
+        }
+        
+        // Improve legend visibility with background and border
+        var legend = progressChart.lookup(".chart-legend");
+        if (legend != null) {
+            legend.setStyle("-fx-background-color: white; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-padding: 8; -fx-text-fill: black;");
+        }
         
         System.out.println("✓ Loaded progress chart with " + weightHistory.size() + " data points");
     }

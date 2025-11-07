@@ -15,18 +15,31 @@
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane fitToWidth="true" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fittrack.controller.ProgressController">
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fittrack.controller.ProgressController">
+   <!-- Top Navigation Bar -->
+   <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #f5f5f5; -fx-padding: 15;">
+      <Label fx:id="welcomeLabel" text="Track Your Progress">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+      </Label>
+      
+      <!-- Spacer -->
+      <HBox HBox.hgrow="ALWAYS" />
+      
+      <!-- Back Button -->
+      <Button text="← Back to Dashboard" onAction="#handleBackButtonAction" prefWidth="180.0" style="-fx-background-color: #2196F3; -fx-text-fill: white;">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Button>
+   </HBox>
+
+<ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
 <VBox spacing="20.0">
    <padding>
       <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
    </padding>
-   
-   <!-- Title -->
-   <Label fx:id="welcomeLabel" text="Track Your Progress">
-      <font>
-         <Font name="System Bold" size="24.0" />
-      </font>
-   </Label>
    
    <!-- Statistics -->
    <VBox spacing="10.0" style="-fx-background-color: #f5f5f5; -fx-padding: 20; -fx-background-radius: 10;">
@@ -113,12 +126,7 @@
             <Font size="14.0" />
          </font>
       </Button>
-      
-      <Button text="Back to Dashboard" onAction="#handleBackButtonAction" prefWidth="150.0">
-         <font>
-            <Font size="14.0" />
-         </font>
-      </Button>
    </HBox>
 </VBox>
 </ScrollPane>
+</VBox>
