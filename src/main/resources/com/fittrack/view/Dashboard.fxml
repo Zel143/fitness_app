@@ -137,6 +137,27 @@
                     </Label>
                     <Label fx:id="statsLabel" text="No stats available"/>
                 </VBox>
+
+                <!-- Today's Workout Exercises -->
+                <VBox spacing="10.0"
+                      style="-fx-background-color: #E8F5E9; -fx-padding: 20; -fx-background-radius: 10;">
+                    <Label text="💪 Today's Workout Exercises">
+                        <font>
+                            <Font name="System Bold" size="18.0"/>
+                        </font>
+                    </Label>
+                    <TableView fx:id="todayWorkoutTable" prefHeight="200.0">
+                        <columns>
+                            <TableColumn fx:id="exerciseColumn" text="Exercise" prefWidth="200.0"/>
+                            <TableColumn fx:id="setsColumn" text="Sets" prefWidth="100.0"/>
+                            <TableColumn fx:id="repsColumn" text="Reps" prefWidth="100.0"/>
+                            <TableColumn fx:id="weightColumn" text="Weight (kg)" prefWidth="120.0"/>
+                        </columns>
+                        <placeholder>
+                            <Label text="No exercises logged for today. Start your workout!"/>
+                        </placeholder>
+                    </TableView>
+                </VBox>
             </VBox>
         </AnchorPane>
     </center>

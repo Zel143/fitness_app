@@ -1,18 +1,27 @@
 package com.fittrack.controller;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
 
+import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
+import com.fittrack.model.WorkoutLog;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 
 /**
  * DashboardController - Controller for the Dashboard.fxml view
@@ -29,7 +38,24 @@ public class DashboardController {
     @FXML
     private CheckBox themeToggle;
 
+    @FXML
+    private TableView<WorkoutLog> todayWorkoutTable;
+
+    @FXML
+    private TableColumn<WorkoutLog, String> exerciseColumn;
+
+    @FXML
+    private TableColumn<WorkoutLog, Integer> setsColumn;
+
+    @FXML
+    private TableColumn<WorkoutLog, Integer> repsColumn;
+
+    @FXML
+    private TableColumn<WorkoutLog, Double> weightColumn;
+
     private User currentUser;
+    private final DatabaseManager dbManager = new DatabaseManager();
+    private ObservableList<WorkoutLog> todayWorkouts = FXCollections.observableArrayList();
 
     /**
      * Initialize method called when the FXML is loaded
@@ -42,9 +68,19 @@ public class DashboardController {
         if (currentUser != null) {
             userLabel.setText("Welcome, " + currentUser.getUsername() + "!");
             updateStatsDisplay();
+            loadTodayWorkouts();
         } else {
             userLabel.setText("Welcome, Guest!");
             System.out.println("⚠ Warning: No user logged in");
+        }
+
+        // Setup table columns if table exists
+        if (todayWorkoutTable != null) {
+            exerciseColumn.setCellValueFactory(new PropertyValueFactory<>("workoutName"));
+            setsColumn.setCellValueFactory(new PropertyValueFactory<>("sets"));
+            repsColumn.setCellValueFactory(new PropertyValueFactory<>("reps"));
+            weightColumn.setCellValueFactory(new PropertyValueFactory<>("weightUsed"));
+            todayWorkoutTable.setItems(todayWorkouts);
         }
 
         Platform.runLater(() -> {
@@ -92,6 +128,30 @@ public class DashboardController {
         } else {
             statsLabel.setText("Complete your profile to see your fitness stats!");
         }
+    }
+
+    /**
+     * Load today's workout exercises from the database
+     */
+    private void loadTodayWorkouts() {
+        if (currentUser == null || todayWorkoutTable == null) {
+            return;
+        }
+
+        // Get all workout logs for the user
+        List<WorkoutLog> allWorkouts = dbManager.getWorkoutLogs(currentUser.getUserId());
+        
+        // Filter for today's workouts
+        LocalDate today = LocalDate.now();
+        todayWorkouts.clear();
+        
+        for (WorkoutLog workout : allWorkouts) {
+            if (workout.getDate() != null && workout.getDate().equals(today)) {
+                todayWorkouts.add(workout);
+            }
+        }
+
+        System.out.println("✓ Loaded " + todayWorkouts.size() + " workouts for today");
     }
 
     // Navigation Handlers
