@@ -1,11 +1,10 @@
 # 📋 How Generative AI Was Used in the FitTrack Project
 
-This document provides a comprehensive and transparent breakdown of how Generative AI (specifically GitHub Copilot) was utilized as a development tool and learning aid throughout the creation of this project.
+This document provides a comprehensive and transparent breakdown of how Generative AI (specifically GitHub Copilot and ChatGPT) was utilized as a development tool and learning aid throughout the creation of this project.
 
-
-**Last Updated:** November 7, 2025  
+**Last Updated:** November 2025  
 **Project:** FitTrack - Fitness Tracking Application  
-**Technology Stack:** Java, JavaFX, SQLite, Maven  
+**Technology Stack:** Java 21, JavaFX 21.0.2, SQLite 3.44.1.0, Maven  
 
 ---
 
@@ -38,6 +37,7 @@ This document provides a comprehensive and transparent breakdown of how Generati
 ✅ Provided SQLite-specific alternatives and best practices  
 ✅ Ensured data type mappings were correct  
 ✅ Added `IF NOT EXISTS` clauses for safer database initialization  
+✅ Explained the rationale behind each change for learning purposes
 
 ---
 
