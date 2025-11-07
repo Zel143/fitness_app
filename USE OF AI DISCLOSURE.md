@@ -2,7 +2,8 @@
 
 This document provides a comprehensive and transparent breakdown of how Generative AI (specifically GitHub Copilot) was utilized as a development tool and learning aid throughout the creation of this project.
 
-**Last Updated:** November 5, 2025  
+
+**Last Updated:** November 7, 2025  
 **Project:** FitTrack - Fitness Tracking Application  
 **Technology Stack:** Java, JavaFX, SQLite, Maven  
 
@@ -437,10 +438,12 @@ public class WorkoutLog {
    - Implemented date-based filtering and sorting
    - Created progress calculation algorithms
 
-4. **Dashboard Statistics**
+4. **Dashboard Statistics & Today's Workout Display**
    - Calculated aggregated metrics (total workouts, calories, etc.)
    - Implemented recent activity queries
    - Created goal progress percentage calculations
+   - **Added today's workout exercises table on dashboard** - Shows real-time view of current day's logged exercises with sets, reps, and weight
+   - Implemented date filtering to display only today's workout data
 
 5. **Toast Notifications**
    - Implemented custom JavaFX popup notifications

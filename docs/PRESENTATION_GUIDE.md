@@ -29,6 +29,8 @@
 ### Talking Points:
 > "FitTrack is a comprehensive fitness tracking desktop application built entirely in Java. We chose JavaFX for its modern UI capabilities and FXML support, which allows us to separate our UI design from our business logic. The application migrated from MySQL to SQLite, making it completely portable with zero configuration needed."
 
+> "The dashboard now features a real-time view of today's workout exercises, making it easy for users to see their current day's activity at a glance."
+
 ---
 
 ## 2. **Project Architecture** (5-7 minutes)
@@ -483,6 +485,7 @@ Reference [TESTING_CHECKLIST.md](../TESTING_CHECKLIST.md):
 - ✅ Goal management
 - ✅ Progress tracking
 - ✅ Food logging
+- ✅ Dashboard workout display (today's exercises)
 - ✅ Navigation between all screens
 - ✅ Logout functionality
 - ✅ Data persistence after restart
@@ -654,6 +657,11 @@ A: We use prepared statements exclusively throughout the entire application. Nev
 - Show welcome message with username
 - Explain navigation buttons
 - Point out BMI calculation area
+- **Highlight**: Today's Workout Exercises table
+  - Shows exercises logged for current day
+  - Displays exercise name, sets, reps, weight used
+  - Real-time filtering by today's date
+  - Empty state message if no workouts logged today
 
 #### 3. **Profile** (3 min)
 - Click "My Profile"

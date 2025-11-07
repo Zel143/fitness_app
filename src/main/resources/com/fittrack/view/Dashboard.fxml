@@ -26,6 +26,8 @@
             <Separator style="-fx-background-color: white;"/>
 
             <VBox spacing="10.0">
+                <Button text="👤 My Profile" onAction="#handleProfileButtonAction"
+                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14;"/>
                 <Button text="🎯 My Goals" onAction="#handleGoalsButtonAction"
                         style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14;"/>
                 <Button text="📅 Schedule" onAction="#handleWorkoutPlansButtonAction"
@@ -135,7 +137,12 @@
                             <Font name="System Bold" size="18.0"/>
                         </font>
                     </Label>
-                    <Label fx:id="statsLabel" text="No stats available"/>
+                    <ScrollPane fitToWidth="true" prefHeight="250.0" 
+                                style="-fx-background-color: transparent; -fx-background: transparent;">
+                        <Label fx:id="statsLabel" text="No stats available" 
+                               wrapText="true" 
+                               style="-fx-font-size: 14px; -fx-line-spacing: 2px; -fx-text-fill: #333333; -fx-font-family: 'Segoe UI', Arial, sans-serif;"/>
+                    </ScrollPane>
                 </VBox>
 
                 <!-- Today's Workout Exercises -->

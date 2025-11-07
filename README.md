@@ -12,6 +12,7 @@ This is a **complete, self-contained desktop application** with all core feature
 - ✅ **Fixed all data persistence issues** - Proper save/load operations across all modules
 - ✅ **Implemented Command Pattern** - Undo/Redo functionality for food log entries
 - ✅ **Enhanced UI/UX** - Professional Material Design-inspired interface
+- ✅ **Dashboard Workout Display** - Shows today's exercises directly on the main dashboard
 - ✅ **Comprehensive testing** - All CRUD operations verified and working
 
 ## ✨ Core Features
@@ -25,6 +26,10 @@ This is a **complete, self-contained desktop application** with all core feature
 ### 📊 **Dashboard & Navigation**
 - Centralized navigation hub with quick access to all modules
 - Real-time BMI calculation and display
+- **Today's Workout Exercises Display**: View current day's logged exercises at a glance
+  - Exercise name, sets, reps, and weight used
+  - Automatically filters for today's date
+  - Quick overview of daily workout activity
 - User greeting with personalized information
 - Clean, intuitive interface design
 
