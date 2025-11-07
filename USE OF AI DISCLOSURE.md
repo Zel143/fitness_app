@@ -201,9 +201,19 @@ private TableView<WorkoutPlan> plansTable;
 private TableColumn<WorkoutPlan, String> planNameColumn;
 
 @FXML
+private LineChart<String, Number> progressChart;
+
+@FXML
+private CategoryAxis xAxis;
+
+@FXML
+private NumberAxis yAxis;
+
+@FXML
 public void initialize() {
     planNameColumn.setCellValueFactory(new PropertyValueFactory<>("planName"));
     loadUserPlans();
+    loadProgressChart(); // Load weight history chart on dashboard
 }
 ```
 
@@ -211,7 +221,10 @@ public void initialize() {
 ✅ Generated proper `@FXML` annotations for UI components  
 ✅ Implemented `PropertyValueFactory` for table columns  
 ✅ Set up proper controller initialization methods  
-✅ Connected FXML view files with Java controller classes  
+✅ Connected FXML view files with Java controller classes
+✅ Configured LineChart components (chart, axes) for progress visualization
+✅ Implemented chart styling via Node.lookup() for dynamic text elements
+✅ Added programmatic styling for chart title, axis labels, and legend  
 
 ---
 
@@ -444,6 +457,16 @@ public class WorkoutLog {
    - Created goal progress percentage calculations
    - **Added today's workout exercises table on dashboard** - Shows real-time view of current day's logged exercises with sets, reps, and weight
    - Implemented date filtering to display only today's workout data
+   - **Enhanced dashboard chart visibility**:
+     - Integrated LineChart for weight progress visualization on main dashboard
+     - Implemented professional chart styling with white background and gray border (#cccccc, 2px)
+     - Optimized chart height (320px) for better data display
+     - Styled all text elements in black (title 16px, axis labels 14px bold, tick labels 12px)
+     - Added Y-axis label "Weight (kg)" with proper padding for full visibility
+     - Implemented legend styling with white background and border
+     - Created presentation-ready appearance with clear visual distinction
+     - Added professional empty state messages with icons for workout table
+     - Applied blue border styling (#2196F3) to workout table for visual emphasis
 
 5. **Toast Notifications**
    - Implemented custom JavaFX popup notifications
@@ -561,7 +584,8 @@ pstmt.executeBatch();
 |----------|----------------|-------------------|
 | Database Schema Design | 30% | 70% |
 | CRUD Operations | 50% | 50% |
-| UI/FXML Design | 20% | 80% |
+| UI/FXML Design | 25% | 75% |
+| Chart Styling & Visualization | 40% | 60% |
 | Error Handling | 60% | 40% |
 | Security Implementation | 70% | 30% |
 | Design Patterns | 40% | 60% |
@@ -570,6 +594,8 @@ pstmt.executeBatch();
 
 **Estimated Overall AI Contribution:** ~40-45%  
 **Estimated Overall Human Contribution:** ~55-60%
+
+**Note on Chart Styling**: Recent dashboard improvements (chart visibility, label styling, background/border enhancements) involved AI assistance for JavaFX-specific CSS properties and Node.lookup() patterns, but human developers made all design decisions, debugged visual issues, and iteratively refined the appearance through multiple testing cycles.
 
 ---
 

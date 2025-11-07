@@ -13,6 +13,14 @@ This is a **complete, self-contained desktop application** with all core feature
 - ✅ **Implemented Command Pattern** - Undo/Redo functionality for food log entries
 - ✅ **Enhanced UI/UX** - Professional Material Design-inspired interface
 - ✅ **Dashboard Workout Display** - Shows today's exercises directly on the main dashboard
+- ✅ **Professional Chart Styling** - Progress chart with white background, visible borders, and fully readable labels
+  - Chart legend with white background and border for visibility
+  - Blue table borders (#2196F3) for visual emphasis
+  - Professional empty state messages with icons
+  - All chart text in black (title, axis labels, ticks) with proper sizing
+  - Y-axis "Weight (kg)" label fully visible with bold styling and padding
+  - Distinct white container with gray border for chart clarity
+  - Presentation-ready dashboard appearance
 - ✅ **Comprehensive testing** - All CRUD operations verified and working
 
 ## ✨ Core Features
@@ -28,14 +36,24 @@ This is a **complete, self-contained desktop application** with all core feature
 - Real-time BMI calculation and display
 - **Today's Workout Exercises Display**: View current day's logged exercises at a glance
   - Exercise name, sets, reps, and weight used
+  - Integrated table view on main dashboard
+  - Professional blue border styling (#2196F3)
   - Automatically filters for today's date
   - Quick overview of daily workout activity
-- **Interactive Progress Chart**: LineChart visualization showing weight history over time
-  - Displays weight trends directly on the dashboard
+- **Interactive Progress Chart**: Professional LineChart visualization showing weight history over time
+  - Displays weight trends directly on the dashboard in distinct white box
+  - Chart title: "Weight Progress Over Time" in bold black
+  - Y-axis label: "Weight (kg)" fully visible in bold black
+  - X-axis label: "Date" in bold black
+  - Chart height: 320px for optimal data display
+  - White background with gray border for clear visual distinction
+  - All labels and text visible in black for maximum readability
+  - Legend with white background and border
+  - Presentation-ready styling with professional appearance
   - Real-time updates when weight entries are added
   - Quick access to progress tracking from main screen
 - User greeting with personalized information
-- Clean, intuitive interface design
+- Clean, intuitive interface with Material Design-inspired elements
 
 ### 👤 **Profile Management**
 - Complete user profile with customizable fields:
@@ -71,14 +89,24 @@ This is a **complete, self-contained desktop application** with all core feature
 - Seamless switching between planning and logging
 
 ### 📈 **Progress Tracking**
-- **Interactive Weight Chart**: Visualize weight changes over time with JavaFX LineChart
+- **Interactive Weight Chart**: Professionally styled JavaFX LineChart
+  - White background with gray border (#cccccc, 2px) for clear visibility
+  - Chart height: 320px for optimal data display
+  - Title: "Weight Progress Over Time" in bold black (16px)
+  - Y-axis label: "Weight (kg)" fully visible in bold black (14px) with proper padding
+  - X-axis label: "Date" in bold black (14px)
+  - Tick labels in black (12px) for readability
+  - Legend with white background and border
+  - Presentation-ready appearance
 - **Statistics Dashboard**: 
-  - Starting weight
-  - Current weight
-  - Total weight change
-  - Progress trends
+  - Starting weight (earliest entry)
+  - Current weight (most recent entry)
+  - Weight change (kg and percentage)
+  - Progress trends and status indicators
 - Add, view, and delete weight entries
-- Date-based tracking with automatic sorting
+- Date-based tracking with automatic sorting (newest first)
+- Real-time chart updates with styling preserved
+- Dashboard integration for quick progress overview
 - Data persistence and reload functionality
 
 ### 🍽️ **Food Logging & Nutrition**

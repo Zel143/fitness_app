@@ -244,9 +244,13 @@ if (user != null) {
 **Flow**: `ProgressController.java` → `DatabaseManager.getWeightHistory()` → **Dashboard LineChart**
 
 **Features**:
-- **Weight tracking with LineChart visualization**:
-  - Interactive JavaFX LineChart
-  - X-axis: Date, Y-axis: Weight (kg)
+- **Weight tracking with professional LineChart visualization**:
+  - Interactive JavaFX LineChart with white background
+  - Clear gray border (#cccccc, 2px) for visual distinction
+  - Chart height: 320px for optimal data display
+  - All text elements visible in black (title, axis labels, tick labels)
+  - Bold axis labels for better readability
+  - Legend with white background and border
   - Automatic chart updates on data changes
 - **Statistics Dashboard**:
   - Current weight (most recent entry)
@@ -255,25 +259,36 @@ if (user != null) {
   - Status indicator (weight loss/gain/maintaining)
 - **Weight History Table**: View all entries with date and weight
 - Add/delete weight entries
-- **Dashboard Integration**: Progress chart displayed on main dashboard
+- **Dashboard Integration**: Progress chart prominently displayed on main dashboard
+  - Distinct white container with rounded corners
+  - Chart title: "Weight Progress Over Time"
+  - Y-axis label: "Weight (kg)" in bold black (fully visible)
+  - X-axis label: "Date" in bold black
+  - Professional appearance ready for presentations
 - Date-based sorting (newest first)
 - Database persistence and reload
 
 **Demo**:
 - Navigate to "Track Progress"
-- Show LineChart with weight history
+- Show LineChart with professional styling (white background, clear borders)
 - Display statistics panel (current: 70.5kg, starting: 75.0kg, change: -4.5kg / -6%)
 - Add new weight entry (e.g., 70.0kg for today)
-- **Chart updates in real-time**
+- **Chart updates in real-time** with all labels remaining visible
 - **Statistics recalculate automatically**
-- Return to **Dashboard** → See progress chart displayed on main screen
-- Delete a weight entry → Chart updates immediately
+- Return to **Dashboard** → See progress chart in distinct white box on main screen
+- Point out chart visibility improvements:
+  - White background makes chart stand out from gray dashboard
+  - Gray border clearly defines chart area
+  - All labels readable in black (title 16px, axis labels 14px bold, ticks 12px)
+  - Y-axis "Weight (kg)" fully visible with proper padding
+- Delete a weight entry → Chart updates immediately with styling preserved
 - Console shows:
+  - `✓ Loaded progress chart with 3 data points`
   - `✓ Weight history saved with ID: X`
   - `✓ Weight history deleted successfully`
 
 ### Talking Points:
-> "Progress tracking uses JavaFX's LineChart to visualize weight changes over time. The chart integrates with the Dashboard, so users can see their progress trends without leaving the main screen. We calculate statistics like total weight change and percentage loss/gain using the earliest and most recent entries. The data is sorted DESC by date, ensuring the latest entry is always at index 0."
+> "Progress tracking uses JavaFX's LineChart to visualize weight changes over time. The chart has been professionally styled with a white background and gray border, making it stand out clearly on the dashboard. All text elements—title, axis labels, and tick labels—are now visible in black with appropriate font sizes and bold styling for readability. The Y-axis label 'Weight (kg)' is fully visible thanks to proper padding adjustments. The chart integrates seamlessly with the Dashboard at 320px height, providing users with immediate visual feedback on their progress trends without navigating away from the main screen. We calculate statistics like total weight change and percentage loss/gain using the earliest and most recent entries. The data is sorted DESC by date, ensuring the latest entry is always at index 0."
 
 ---
 
