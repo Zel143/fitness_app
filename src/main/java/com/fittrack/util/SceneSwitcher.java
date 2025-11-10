@@ -48,9 +48,25 @@ public class SceneSwitcher {
      * @throws IOException if the FXML file cannot be loaded
      */
     public static void switchScene(Event event, String fxmlFileName, String title) throws IOException {
-        switchScene(event, fxmlFileName);
+        // Build the full path to the FXML file
+        String fxmlPath = "/com/fittrack/view/" + fxmlFileName;
+        
+        // Load the FXML file
+        FXMLLoader loader = new FXMLLoader(SceneSwitcher.class.getResource(fxmlPath));
+        Parent root = loader.load();
+        
+        // Get the current stage from the event source BEFORE changing scene
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        
+        // Create a new scene
+        Scene scene = new Scene(root);
+        
+        // Set the title first
         stage.setTitle(title);
+        
+        // Set the scene and show it
+        stage.setScene(scene);
+        stage.show();
     }
     
     /**
