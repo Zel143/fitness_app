@@ -203,7 +203,8 @@ public class DatabaseManager {
      * Authenticates a user by checking their password.
      */
     public User login(String username, String password) {
-        String sql = "SELECT * FROM users WHERE username = ?";
+        // Use BINARY comparison to ensure case-sensitive username matching
+        String sql = "SELECT * FROM users WHERE username = ? COLLATE BINARY";
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -216,6 +217,7 @@ public class DatabaseManager {
                 System.out.println("DEBUG: Stored hash: " + storedHash.substring(0, 20) + "...");
                 System.out.println("DEBUG: Checking password...");
                 
+                // BCrypt.checkpw() is ALWAYS case-sensitive
                 if (BCrypt.checkpw(password, storedHash)) {
                     // Password is correct, create User object
                     User user = new User();
@@ -249,6 +251,49 @@ public class DatabaseManager {
             System.err.println("✗ Login error: " + e.getMessage());
         }
         System.out.println("✗ Login failed: Invalid credentials");
+        return null;
+    }
+
+    /**
+     * Retrieves a user by their ID from the database.
+     * Used to refresh user data after profile updates.
+     * @param userId the ID of the user to retrieve
+     * @return User object if found, null otherwise
+     */
+    public User getUserById(int userId) {
+        String sql = "SELECT * FROM users WHERE user_id = ?";
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                User user = new User();
+                user.userId = rs.getInt("user_id");
+                user.username = rs.getString("username");
+                user.email = rs.getString("email");
+                
+                // Handle potentially NULL values from SQLite
+                Integer ageValue = rs.getObject("age") != null ? rs.getInt("age") : null;
+                user.age = ageValue;
+                
+                user.gender = rs.getString("gender");
+                
+                Double heightValue = rs.getObject("height") != null ? rs.getDouble("height") : null;
+                user.height = heightValue;
+                
+                Double weightValue = rs.getObject("weight") != null ? rs.getDouble("weight") : null;
+                user.weight = weightValue;
+                
+                user.fitnessLevel = rs.getString("fitness_level");
+                
+                System.out.println("✓ User data refreshed for ID: " + userId);
+                return user;
+            }
+        } catch (SQLException e) {
+            System.err.println("✗ Error fetching user by ID: " + e.getMessage());
+        }
         return null;
     }
 
@@ -410,7 +455,14 @@ public class DatabaseManager {
                 WorkoutLog log = new WorkoutLog();
                 log.setId(rs.getInt("log_id"));
                 log.setUserId(rs.getInt("user_id"));
-                log.setWorkoutName(rs.getString("exercise_id")); // Map as needed
+                
+                // Try to get workout_name first, fallback to exercise_id
+                String workoutName = rs.getString("workout_name");
+                if (workoutName == null || workoutName.isEmpty()) {
+                    workoutName = "Exercise #" + rs.getInt("exercise_id");
+                }
+                log.setWorkoutName(workoutName);
+                
                 log.setSets(rs.getInt("sets"));
                 log.setReps(rs.getInt("reps"));
                 log.setWeightUsed(rs.getDouble("weight_used"));
@@ -694,17 +746,21 @@ public class DatabaseManager {
      * Saves a new workout log.
      */
     public boolean saveWorkoutLog(WorkoutLog log) {
-        String sql = "INSERT INTO workout_log(user_id, exercise_id, sets, reps, weight_used, date) "
-            + "VALUES(?, ?, ?, ?, ?, ?)";
+        // First, ensure workout_name column exists
+        ensureWorkoutNameColumn();
+        
+        String sql = "INSERT INTO workout_log(user_id, exercise_id, workout_name, sets, reps, weight_used, date) "
+            + "VALUES(?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, log.getUserId());
-            pstmt.setInt(2, 1); // You'll need to map exercise name to exercise_id
-            pstmt.setInt(3, log.getSets());
-            pstmt.setInt(4, log.getReps());
-            pstmt.setDouble(5, log.getWeightUsed());
-            pstmt.setObject(6, log.getDate());
+            pstmt.setInt(2, 1); // Default exercise_id for compatibility
+            pstmt.setString(3, log.getWorkoutName());
+            pstmt.setInt(4, log.getSets());
+            pstmt.setInt(5, log.getReps());
+            pstmt.setDouble(6, log.getWeightUsed());
+            pstmt.setObject(7, log.getDate());
             
             int rowsAffected = pstmt.executeUpdate();
             
@@ -728,6 +784,34 @@ public class DatabaseManager {
     }
 
     /**
+     * Ensures workout_name column exists in workout_log table
+     */
+    private void ensureWorkoutNameColumn() {
+        String checkColumnSql = "PRAGMA table_info(workout_log)";
+        String alterTableSql = "ALTER TABLE workout_log ADD COLUMN workout_name TEXT";
+        
+        try (Connection conn = connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(checkColumnSql)) {
+            
+            boolean hasWorkoutName = false;
+            while (rs.next()) {
+                if ("workout_name".equals(rs.getString("name"))) {
+                    hasWorkoutName = true;
+                    break;
+                }
+            }
+            
+            if (!hasWorkoutName) {
+                stmt.executeUpdate(alterTableSql);
+                System.out.println("✓ Added workout_name column to workout_log table");
+            }
+        } catch (SQLException e) {
+            System.err.println("✗ Error ensuring workout_name column: " + e.getMessage());
+        }
+    }
+
+    /**
      * Deletes a goal by its ID.
      */
     public boolean deleteGoal(int goalId) {
@@ -742,6 +826,26 @@ public class DatabaseManager {
             return rowsAffected > 0;
         } catch (SQLException e) {
             System.err.println("✗ Delete goal error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Deletes a workout log by its ID.
+     */
+    public boolean deleteWorkoutLog(int workoutId) {
+        String sql = "DELETE FROM workout_log WHERE workout_id = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, workoutId);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            System.out.println("✓ Workout log deleted with ID: " + workoutId);
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("✗ Delete workout log error: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

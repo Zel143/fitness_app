@@ -12,6 +12,15 @@ This is a **complete, self-contained desktop application** with all core feature
 - ✅ **Fixed all data persistence issues** - Proper save/load operations across all modules
 - ✅ **Implemented Command Pattern** - Undo/Redo functionality for food log entries
 - ✅ **Enhanced UI/UX** - Professional Material Design-inspired interface
+- ✅ **Dashboard Workout Display** - Shows today's exercises directly on the main dashboard
+- ✅ **Professional Chart Styling** - Progress chart with white background, visible borders, and fully readable labels
+  - Chart legend with white background and border for visibility
+  - Blue table borders (#2196F3) for visual emphasis
+  - Professional empty state messages with icons
+  - All chart text in black (title, axis labels, ticks) with proper sizing
+  - Y-axis "Weight (kg)" label fully visible with bold styling and padding
+  - Distinct white container with gray border for chart clarity
+  - Presentation-ready dashboard appearance
 - ✅ **Comprehensive testing** - All CRUD operations verified and working
 
 ## ✨ Core Features
@@ -25,8 +34,26 @@ This is a **complete, self-contained desktop application** with all core feature
 ### 📊 **Dashboard & Navigation**
 - Centralized navigation hub with quick access to all modules
 - Real-time BMI calculation and display
+- **Today's Workout Exercises Display**: View current day's logged exercises at a glance
+  - Exercise name, sets, reps, and weight used
+  - Integrated table view on main dashboard
+  - Professional blue border styling (#2196F3)
+  - Automatically filters for today's date
+  - Quick overview of daily workout activity
+- **Interactive Progress Chart**: Professional LineChart visualization showing weight history over time
+  - Displays weight trends directly on the dashboard in distinct white box
+  - Chart title: "Weight Progress Over Time" in bold black
+  - Y-axis label: "Weight (kg)" fully visible in bold black
+  - X-axis label: "Date" in bold black
+  - Chart height: 320px for optimal data display
+  - White background with gray border for clear visual distinction
+  - All labels and text visible in black for maximum readability
+  - Legend with white background and border
+  - Presentation-ready styling with professional appearance
+  - Real-time updates when weight entries are added
+  - Quick access to progress tracking from main screen
 - User greeting with personalized information
-- Clean, intuitive interface design
+- Clean, intuitive interface with Material Design-inspired elements
 
 ### 👤 **Profile Management**
 - Complete user profile with customizable fields:
@@ -46,25 +73,40 @@ This is a **complete, self-contained desktop application** with all core feature
 - Edit and delete goals with confirmation dialogs
 - Database-backed persistence
 
-### 💪 **Workout Plan Management**
-- Design comprehensive workout plans
-- Track plan details:
-  - Plan name and description
-  - Difficulty level
-  - Duration (in weeks)
-  - Target goals
-- Save and manage multiple workout plans
+### 💪 **Workout Management**
+- **Unified Workouts Screen** with TabPane interface:
+  - **Workout Plans Tab**: Design and manage workout plans
+    - Plan name and description
+    - Difficulty level
+    - Duration (in weeks)
+    - Target goals
+  - **Workout Logs Tab**: Track individual workout sessions
+    - Log exercises with sets, reps, and weight
+    - Date-based workout tracking
+    - View complete workout history
+    - Add, delete, and clear workout entries
 - Full CRUD operations with database integration
+- Seamless switching between planning and logging
 
 ### 📈 **Progress Tracking**
-- **Interactive Weight Chart**: Visualize weight changes over time with JavaFX LineChart
+- **Interactive Weight Chart**: Professionally styled JavaFX LineChart
+  - White background with gray border (#cccccc, 2px) for clear visibility
+  - Chart height: 320px for optimal data display
+  - Title: "Weight Progress Over Time" in bold black (16px)
+  - Y-axis label: "Weight (kg)" fully visible in bold black (14px) with proper padding
+  - X-axis label: "Date" in bold black (14px)
+  - Tick labels in black (12px) for readability
+  - Legend with white background and border
+  - Presentation-ready appearance
 - **Statistics Dashboard**: 
-  - Starting weight
-  - Current weight
-  - Total weight change
-  - Progress trends
+  - Starting weight (earliest entry)
+  - Current weight (most recent entry)
+  - Weight change (kg and percentage)
+  - Progress trends and status indicators
 - Add, view, and delete weight entries
-- Date-based tracking with automatic sorting
+- Date-based tracking with automatic sorting (newest first)
+- Real-time chart updates with styling preserved
+- Dashboard integration for quick progress overview
 - Data persistence and reload functionality
 
 ### 🍽️ **Food Logging & Nutrition**
@@ -556,6 +598,189 @@ Mac/Linux: ./fittrack.db
 ### Default Test Credentials
 
 After fresh installation, register a new account. There are no default credentials.
+
+---
+
+## 📚 Appendices
+
+### Appendix A: Database Migration (MySQL → SQLite)
+
+The application was successfully migrated from MySQL to SQLite for better portability and zero-configuration deployment.
+
+#### What Changed:
+
+**Dependencies (`pom.xml`):**
+- Removed: `mysql-connector-j`
+- Added: `sqlite-jdbc:3.44.1.0`
+
+**Database Configuration (`DatabaseManager.java`):**
+- Connection URL: `jdbc:mysql://localhost:3306/fittrack_db` → `jdbc:sqlite:fittrack.db`
+- Removed username/password authentication
+- SQL syntax updates:
+  - `INT AUTO_INCREMENT` → `INTEGER AUTOINCREMENT`
+  - `VARCHAR(n)` → `TEXT`
+  - `DOUBLE` → `REAL`
+  - Removed `ENGINE=InnoDB`
+
+**Benefits:**
+
+| Feature | MySQL (Before) | SQLite (After) |
+|---------|----------------|----------------|
+| **Setup** | Complex (server install) | Zero configuration |
+| **Configuration** | Username/password required | None needed |
+| **Portability** | Server-dependent | Single file |
+| **Backup** | SQL dump commands | Copy file |
+| **Performance** | Network overhead | Direct file access |
+
+### Appendix B: Data Persistence Implementation
+
+All CRUD operations use SQLite-specific methods for retrieving auto-generated IDs.
+
+#### Key Technical Solution:
+
+**Problem:** SQLite JDBC driver doesn't support `getGeneratedKeys()` like MySQL.
+
+**Solution:** Use SQLite's `last_insert_rowid()` function:
+
+```java
+// MySQL approach (doesn't work with SQLite)
+PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+pstmt.executeUpdate();
+ResultSet keys = pstmt.getGeneratedKeys();
+
+// SQLite approach (works correctly)
+PreparedStatement pstmt = conn.prepareStatement(sql);
+pstmt.executeUpdate();
+try (Statement stmt = conn.createStatement();
+     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+    if (rs.next()) {
+        generatedId = rs.getInt(1);
+    }
+}
+```
+
+**Updated Methods:**
+- `saveGoal()` - Returns generated goal ID
+- `saveWorkoutPlan()` - Returns generated plan ID
+- `saveWeightHistory()` - Returns generated weight entry ID
+- `saveFoodLog()` - Returns generated food log ID
+- `saveWorkoutLog()` - Returns generated workout log ID
+
+**Data Flow:**
+```
+User Action → Validation → Database Save → Get Auto-Generated ID → 
+Reload from Database → Update UI with Fresh Data
+```
+
+This ensures:
+- ✅ Data persists after app restart
+- ✅ Correct IDs for edit/delete operations
+- ✅ No duplicate entries in UI
+- ✅ Database is single source of truth
+
+### Appendix C: Code Optimizations
+
+#### Performance Improvements:
+
+1. **Immutable Database Managers:**
+   - Changed to `final DatabaseManager dbManager` across all controllers
+   - Prevents accidental reassignment
+   - Better memory management
+
+2. **Non-blocking UI Updates:**
+   - Replaced `Thread.sleep()` with JavaFX `PauseTransition`
+   - Registration screen now uses asynchronous delays
+   - Smoother user experience
+
+3. **Generic Event Handling:**
+   - `SceneSwitcher` now accepts generic `Event` type
+   - Supports both `ActionEvent` (buttons) and `MouseEvent` (labels)
+   - More flexible navigation system
+
+#### Code Quality Improvements:
+
+1. **Removed Duplicate Imports:**
+   - Cleaned up `@FXML` duplicates
+   - Organized import statements
+   - Better code readability
+
+2. **Helper Methods:**
+   - Added `showError()` and `showSuccess()` methods
+   - Reduced code duplication
+   - DRY (Don't Repeat Yourself) principle
+
+3. **Updated Documentation:**
+   - Removed outdated "MOCK DATA" comments
+   - Accurate reflection of database usage
+   - Better code comments
+
+### Appendix D: SQLite vs MySQL Reference
+
+For developers familiar with MySQL, here are the key differences:
+
+| Feature | MySQL | SQLite |
+|---------|-------|--------|
+| **Auto-increment** | `AUTO_INCREMENT` | `AUTOINCREMENT` |
+| **Get last insert ID** | `getGeneratedKeys()` | `last_insert_rowid()` |
+| **String type** | `VARCHAR(n)` | `TEXT` |
+| **Decimal type** | `DOUBLE`, `DECIMAL` | `REAL` |
+| **Engine** | `ENGINE=InnoDB` | Not used |
+| **NULL handling** | Lenient | Strict (use `setNull()`) |
+| **Server** | Required | Embedded |
+| **Configuration** | Complex | Zero-config |
+| **Concurrency** | High | Single-writer |
+| **Best for** | Multi-user, networked | Single-user, desktop |
+
+### Appendix E: Database Management
+
+#### Viewing Database Contents:
+
+**Option 1: DB Browser for SQLite (Recommended)**
+1. Download from [sqlitebrowser.org](https://sqlitebrowser.org/)
+2. Open `fittrack.db` from project directory
+3. Browse all tables visually
+
+**Option 2: SQLite Command Line**
+```bash
+sqlite3 fittrack.db
+.tables                    # List all tables
+.schema users             # View table structure
+SELECT * FROM users;      # Query data
+.exit                     # Exit SQLite
+```
+
+#### Backup Strategies:
+
+**Simple File Copy:**
+```powershell
+# Windows
+Copy-Item "fittrack.db" -Destination "backup\fittrack-$(Get-Date -Format 'yyyyMMdd').db"
+
+# Mac/Linux
+cp fittrack.db backup/fittrack-$(date +%Y%m%d).db
+```
+
+**Export to SQL:**
+```bash
+sqlite3 fittrack.db .dump > backup.sql
+```
+
+**Restore from Backup:**
+```bash
+sqlite3 fittrack.db < backup.sql
+```
+
+#### Database Reset:
+
+```powershell
+# Windows
+Remove-Item "fittrack.db"
+
+# Mac/Linux  
+rm fittrack.db
+
+# Database will be recreated on next app launch
+```
 
 ---
 

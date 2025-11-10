@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox spacing="20.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fittrack.controller.WorkoutPlansController">
+   <padding>
+      <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+   </padding>
+   
+   <!-- Title -->
+   <Label fx:id="welcomeLabel" text="Workouts">
+      <font>
+         <Font name="System Bold" size="24.0"/>
+      </font>
+   </Label>
+   
+   <!-- Tab Pane for Plans and Logs -->
+   <TabPane tabClosingPolicy="UNAVAILABLE" prefHeight="600.0">
+      
+      <!-- TAB 1: Workout Plans -->
+      <Tab text="📅 Workout Plans">
+         <VBox spacing="15.0">
+            <padding>
+               <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+            </padding>
+            
+            <!-- Plans List -->
+            <HBox spacing="20.0" prefHeight="250.0">
+               <!-- Plans ListView -->
+               <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+                  <Label text="Your Workout Plans">
+                     <font>
+                        <Font name="System Bold" size="14.0"/>
+                     </font>
+                  </Label>
+                  <ListView fx:id="plansListView" prefWidth="300.0"/>
+               </VBox>
+               
+               <!-- Plan Details -->
+               <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+                  <Label text="Plan Details">
+                     <font>
+                        <Font name="System Bold" size="14.0"/>
+                     </font>
+                  </Label>
+                  <TextArea fx:id="planDetailsArea" editable="false" wrapText="true" prefHeight="200.0"/>
+               </VBox>
+            </HBox>
+            
+            <!-- Add Plan Form -->
+            <VBox spacing="15.0" style="-fx-background-color: #E3F2FD; -fx-padding: 15; -fx-background-radius: 10;">
+               <Label text="Create New Workout Plan">
+                  <font>
+                     <Font name="System Bold" size="14.0"/>
+                  </font>
+               </Label>
+               
+               <GridPane hgap="10.0" vgap="10.0">
+                  <columnConstraints>
+                     <ColumnConstraints percentWidth="25"/>
+                     <ColumnConstraints percentWidth="75"/>
+                  </columnConstraints>
+                  
+                  <Label text="Plan Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                  <TextField fx:id="planNameField" promptText="e.g., Full Body Workout" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                  
+                  <Label text="Description:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                  <TextArea fx:id="descriptionArea" promptText="Describe your workout plan..." prefRowCount="3" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                  
+                  <Label text="Difficulty:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                  <ComboBox fx:id="difficultyComboBox" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                  
+                  <Label text="Duration (weeks):" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                  <TextField fx:id="durationWeeksField" promptText="e.g., 8" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+               </GridPane>
+               
+               <HBox spacing="10.0">
+                  <Button text="Add Plan" onAction="#handleAddPlanButtonAction" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                  <Button text="Delete Selected Plan" onAction="#handleDeletePlanButtonAction" style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold;"/>
+               </HBox>
+            </VBox>
+         </VBox>
+      </Tab>
+      
+      <!-- TAB 2: Workout Log -->
+      <Tab text="💪 Workout Log">
+         <VBox spacing="15.0">
+            <padding>
+               <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+            </padding>
+            
+            <!-- Workout History Table -->
+            <VBox spacing="10.0">
+               <Label text="Your Workout History">
+                  <font>
+                     <Font name="System Bold" size="14.0"/>
+                  </font>
+               </Label>
+               <TableView fx:id="workoutLogTable" prefHeight="250.0">
+                  <columns>
+                     <TableColumn fx:id="workoutNameColumn" text="Exercise" prefWidth="200.0"/>
+                     <TableColumn fx:id="setsColumn" text="Sets" prefWidth="100.0"/>
+                     <TableColumn fx:id="repsColumn" text="Reps" prefWidth="100.0"/>
+                     <TableColumn fx:id="weightColumn" text="Weight (kg)" prefWidth="120.0"/>
+                     <TableColumn fx:id="dateColumn" text="Date" prefWidth="150.0"/>
+                  </columns>
+               </TableView>
+            </VBox>
+            
+            <!-- Add Workout Form -->
+            <VBox spacing="15.0" style="-fx-background-color: #E8F5E9; -fx-padding: 15; -fx-background-radius: 10;">
+               <Label text="Log New Workout">
+                  <font>
+                     <Font name="System Bold" size="14.0"/>
+                  </font>
+               </Label>
+               
+               <GridPane hgap="10.0" vgap="10.0">
+                  <columnConstraints>
+                     <ColumnConstraints percentWidth="25"/>
+                     <ColumnConstraints percentWidth="75"/>
+                  </columnConstraints>
+                  
+                  <Label text="Exercise Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                  <TextField fx:id="workoutNameField" promptText="e.g., Bench Press" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                  
+                  <Label text="Sets:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                  <TextField fx:id="setsField" promptText="e.g., 4" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                  
+                  <Label text="Reps:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                  <TextField fx:id="repsField" promptText="e.g., 12" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                  
+                  <Label text="Weight (kg):" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                  <TextField fx:id="weightField" promptText="e.g., 60.5" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                  
+                  <Label text="Date:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                  <DatePicker fx:id="datePicker" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+               </GridPane>
+               
+               <HBox spacing="10.0">
+                  <Button text="Add Workout" onAction="#handleAddWorkout" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                  <Button text="Clear" onAction="#handleClear" style="-fx-background-color: #FFC107; -fx-text-fill: white;"/>
+                  <Button text="Delete Selected" onAction="#handleDeleteWorkout" style="-fx-background-color: #F44336; -fx-text-fill: white;"/>
+               </HBox>
+            </VBox>
+         </VBox>
+      </Tab>
+   </TabPane>
+   
+   <!-- Message Label -->
+   <Label fx:id="messageLabel" style="-fx-font-weight: bold;"/>
+   
+   <!-- Back Button -->
+   <Button text="Back to Dashboard" onAction="#handleBackButtonAction" style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-size: 14px;"/>
+</VBox>

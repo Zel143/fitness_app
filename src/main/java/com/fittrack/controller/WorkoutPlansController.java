@@ -1,9 +1,11 @@
 package com.fittrack.controller;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
+import com.fittrack.model.WorkoutLog;
 import com.fittrack.model.WorkoutPlan;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
@@ -15,18 +17,23 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 
 /**
- * WorkoutPlansController - Controller for the WorkoutPlans.fxml view
- * Manages user workout plans with database integration
+ * WorkoutPlansController - Unified controller for Workout Plans and Workout Log
+ * Manages both workout scheduling and daily exercise logging
  */
 public class WorkoutPlansController {
 
+    // Workout Plans Tab
     @FXML private Label welcomeLabel;
     @FXML private ListView<WorkoutPlan> plansListView;
     @FXML private TextArea planDetailsArea;
@@ -35,12 +42,28 @@ public class WorkoutPlansController {
     @FXML private TextArea descriptionArea;
     @FXML private ComboBox<String> difficultyComboBox;
     @FXML private TextField durationWeeksField;
+    
+    // Workout Log Tab
+    @FXML private TableView<WorkoutLog> workoutLogTable;
+    @FXML private TableColumn<WorkoutLog, String> workoutNameColumn;
+    @FXML private TableColumn<WorkoutLog, Integer> setsColumn;
+    @FXML private TableColumn<WorkoutLog, Integer> repsColumn;
+    @FXML private TableColumn<WorkoutLog, Double> weightColumn;
+    @FXML private TableColumn<WorkoutLog, LocalDate> dateColumn;
+    
+    @FXML private TextField workoutNameField;
+    @FXML private TextField setsField;
+    @FXML private TextField repsField;
+    @FXML private TextField weightField;
+    @FXML private DatePicker datePicker;
+    
+    // Common
     @FXML private Label messageLabel;
 
-    // ✅ ADD THIS - This was missing!
     private final DatabaseManager dbManager = new DatabaseManager();
     private User currentUser;
     private final ObservableList<WorkoutPlan> plansList = FXCollections.observableArrayList();
+    private final ObservableList<WorkoutLog> workoutLogList = FXCollections.observableArrayList();
 
     /**
      * Initialize method called when the FXML is loaded
@@ -52,9 +75,15 @@ public class WorkoutPlansController {
         if (currentUser != null) {
             welcomeLabel.setText(currentUser.getUsername() + "'s Workout Plans");
             System.out.println("✓ WorkoutPlans screen loaded for: " + currentUser.getUsername());
+            
+            // Setup Workout Plans tab
             setupListView();
             setupComboBoxes();
             loadWorkoutPlans();
+            
+            // Setup Workout Log tab
+            setupWorkoutLogTable();
+            loadWorkoutLogs();
         } else {
             welcomeLabel.setText("Workout Plans");
             System.out.println("⚠ Warning: No user logged in");
@@ -257,6 +286,197 @@ public class WorkoutPlansController {
             System.err.println("✗ Error loading Dashboard: " + e.getMessage());
         }
     }
+
+    // ==================== WORKOUT LOG TAB METHODS ====================
+
+    /**
+     * Setup workout log table with column bindings
+     */
+    private void setupWorkoutLogTable() {
+        workoutNameColumn.setCellValueFactory(new PropertyValueFactory<>("workoutName"));
+        setsColumn.setCellValueFactory(new PropertyValueFactory<>("sets"));
+        repsColumn.setCellValueFactory(new PropertyValueFactory<>("reps"));
+        weightColumn.setCellValueFactory(new PropertyValueFactory<>("weightUsed"));
+        dateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
+        
+        workoutLogTable.setItems(workoutLogList);
+        
+        System.out.println("✓ Workout log table configured");
+    }
+
+    /**
+     * Load workout logs from database
+     */
+    private void loadWorkoutLogs() {
+        if (currentUser == null) return;
+
+        workoutLogList.clear();
+        
+        var logs = dbManager.getWorkoutLogs(currentUser.getUserId());
+        workoutLogList.addAll(logs);
+        
+        System.out.println("✓ Loaded " + logs.size() + " workout logs from database");
+    }
+
+    /**
+     * Handle Add Workout button click
+     */
+    @FXML
+    private void handleAddWorkout() {
+        String workoutName = workoutNameField.getText().trim();
+        String setsStr = setsField.getText().trim();
+        String repsStr = repsField.getText().trim();
+        String weightStr = weightField.getText().trim();
+        LocalDate date = datePicker.getValue();
+
+        System.out.println("ℹ Add Workout button clicked");
+        System.out.println("ℹ Workout name: " + workoutName);
+
+        // Validation
+        if (workoutName.isEmpty()) {
+            showError("Please enter workout name");
+            return;
+        }
+
+        if (setsStr.isEmpty()) {
+            showError("Please enter number of sets");
+            return;
+        }
+
+        if (repsStr.isEmpty()) {
+            showError("Please enter number of reps");
+            return;
+        }
+
+        if (weightStr.isEmpty()) {
+            showError("Please enter weight used");
+            return;
+        }
+
+        if (date == null) {
+            showError("Please select a date");
+            return;
+        }
+
+        int sets, reps;
+        double weight;
+        
+        try {
+            sets = Integer.parseInt(setsStr);
+            if (sets < 1 || sets > 100) {
+                showError("Sets must be between 1 and 100");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            showError("Sets must be a valid number");
+            return;
+        }
+
+        try {
+            reps = Integer.parseInt(repsStr);
+            if (reps < 1 || reps > 1000) {
+                showError("Reps must be between 1 and 1000");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            showError("Reps must be a valid number");
+            return;
+        }
+
+        try {
+            weight = Double.parseDouble(weightStr);
+            if (weight < 0 || weight > 1000) {
+                showError("Weight must be between 0 and 1000 kg");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            showError("Weight must be a valid number");
+            return;
+        }
+
+        System.out.println("ℹ Creating WorkoutLog object...");
+
+        // Create new workout log
+        WorkoutLog newLog = new WorkoutLog();
+        newLog.setUserId(currentUser.getUserId());
+        newLog.setWorkoutName(workoutName);
+        newLog.setSets(sets);
+        newLog.setReps(reps);
+        newLog.setWeightUsed(weight);
+        newLog.setDate(date);
+
+        System.out.println("ℹ Saving to database...");
+
+        // Save to database
+        boolean success = dbManager.saveWorkoutLog(newLog);
+
+        if (success) {
+            System.out.println("✓ Workout log saved to database with ID: " + newLog.getId());
+            
+            // Add to UI list
+            workoutLogList.add(newLog);
+            
+            // Show success message
+            showSuccess("Workout logged successfully!");
+            
+            // Clear form
+            handleClear();
+            
+            System.out.println("✓ Workout log added to UI: " + workoutName);
+        } else {
+            showError("Failed to save workout log. Please try again.");
+            System.err.println("✗ Failed to save workout log to database");
+        }
+    }
+
+    /**
+     * Handle Delete Workout button click
+     */
+    @FXML
+    private void handleDeleteWorkout() {
+        WorkoutLog selectedLog = workoutLogTable.getSelectionModel().getSelectedItem();
+        
+        if (selectedLog == null) {
+            showError("Please select a workout to delete");
+            return;
+        }
+
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Confirm Delete");
+        confirmAlert.setHeaderText("Delete Workout Log?");
+        confirmAlert.setContentText("Are you sure you want to delete '" + selectedLog.getWorkoutName() + "'?");
+
+        confirmAlert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                boolean success = dbManager.deleteWorkoutLog(selectedLog.getId());
+                
+                if (success) {
+                    workoutLogList.remove(selectedLog);
+                    showSuccess("Workout log deleted successfully!");
+                    System.out.println("✓ Workout log deleted from database with ID: " + selectedLog.getId());
+                } else {
+                    showError("Failed to delete workout log. Please try again.");
+                    System.err.println("✗ Failed to delete workout log from database");
+                }
+            }
+        });
+    }
+
+    /**
+     * Handle Clear button click - clears workout log form
+     */
+    @FXML
+    private void handleClear() {
+        workoutNameField.clear();
+        setsField.clear();
+        repsField.clear();
+        weightField.clear();
+        datePicker.setValue(null);
+        messageLabel.setText("");
+        System.out.println("✓ Workout log form cleared");
+    }
+
+    // ==================== HELPER METHODS ====================
 
     /**
      * Clear the form fields
