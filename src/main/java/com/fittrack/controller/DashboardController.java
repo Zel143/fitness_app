@@ -36,6 +36,9 @@ public class DashboardController {
     private Label statsLabel;
 
     @FXML
+    private Label motivationLabel;
+
+    @FXML
     private TableView<WorkoutLog> todayWorkoutTable;
 
     @FXML
