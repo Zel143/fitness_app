@@ -5,12 +5,10 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.fittrack.model.DatabaseManager;
-import com.fittrack.model.FoodLog;
 import com.fittrack.model.Goal;
 import com.fittrack.model.User;
 import com.fittrack.model.WeightHistory;
 import com.fittrack.model.WorkoutLog;
-import com.fittrack.model.WorkoutPlan;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
 
@@ -18,10 +16,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -40,15 +34,6 @@ public class DashboardController {
 
     @FXML
     private Label statsLabel;
-    
-    @FXML
-    private LineChart<String, Number> progressChart;
-    
-    @FXML
-    private CategoryAxis xAxis;
-    
-    @FXML
-    private NumberAxis yAxis;
 
     @FXML
     private TableView<WorkoutLog> todayWorkoutTable;
@@ -94,8 +79,6 @@ public class DashboardController {
             userLabel.setText("Welcome, " + currentUser.getUsername() + "!");
             System.out.println("DEBUG: About to call updateStatsDisplay()...");
             updateStatsDisplay();
-            System.out.println("DEBUG: About to call loadProgressChart()...");
-            loadProgressChart();
             System.out.println("DEBUG: About to call loadTodayWorkouts()...");
             loadTodayWorkouts();
         } else {
@@ -125,13 +108,9 @@ public class DashboardController {
         // Reload ALL data from database for fresh stats
         List<WeightHistory> weightHistory = dbManager.getWeightHistory(currentUser.getUserId());
         List<Goal> goals = dbManager.getGoals(currentUser.getUserId());
-        List<WorkoutPlan> workoutPlans = dbManager.getWorkoutPlans(currentUser.getUserId());
-        List<FoodLog> todayFood = dbManager.getFoodLog(currentUser.getUserId(), LocalDate.now());
         
         System.out.println("DEBUG: Weight history entries: " + (weightHistory != null ? weightHistory.size() : "NULL"));
         System.out.println("DEBUG: Goals: " + (goals != null ? goals.size() : "NULL"));
-        System.out.println("DEBUG: Workout plans: " + (workoutPlans != null ? workoutPlans.size() : "NULL"));
-        System.out.println("DEBUG: Today's food: " + (todayFood != null ? todayFood.size() : "NULL"));
         
         // Personal Information Section
         stats.append("━━━ Personal Info ━━━\n");
@@ -181,8 +160,7 @@ public class DashboardController {
             double heightInMeters = currentUser.getHeight() / CM_TO_METERS;
             double bmi = weightForBMI / (heightInMeters * heightInMeters);
             String bmiCategory = getBMICategory(bmi);
-            stats.append(String.format("BMI: %.1f\n", bmi));
-            stats.append("Category: ").append(bmiCategory).append("\n");
+            stats.append(String.format("BMI: %.1f (%s)\n", bmi, bmiCategory));
             hasAnyData = true;
         }
 
@@ -193,30 +171,14 @@ public class DashboardController {
             hasAnyData = true;
         }
         
-        // Activity Summary Section
-        stats.append("\n━━━ Activity Summary ━━━\n");
-        
-        // Goals
-        long activeGoals = goals.stream()
-            .filter(g -> g.getTargetDate() != null && g.getTargetDate().isAfter(LocalDate.now()))
-            .count();
-        stats.append("Active Goals: ").append(activeGoals).append("\n");
-        hasAnyData = true;
-        
-        // Workout Plans
-        stats.append("Workout Plans: ").append(workoutPlans.size()).append("\n");
-        
-        // Today's Workouts
-        stats.append("Today's Exercises: ").append(todayWorkouts.size()).append("\n");
-        
-        // Today's Food Intake
-        if (!todayFood.isEmpty()) {
-            int totalCalories = todayFood.stream()
-                .mapToInt(FoodLog::getCalories)
-                .sum();
-            stats.append("Today's Calories: ").append(totalCalories).append(" kcal\n");
-        } else {
-            stats.append("Today's Calories: 0 kcal\n");
+        // Goals Summary
+        if (!goals.isEmpty()) {
+            stats.append("\n━━━ Goals Summary ━━━\n");
+            long activeGoals = goals.stream()
+                .filter(g -> g.getTargetDate() != null && g.getTargetDate().isAfter(LocalDate.now()))
+                .count();
+            stats.append("Active Goals: ").append(activeGoals).append(" / ").append(goals.size()).append(" total\n");
+            hasAnyData = true;
         }
 
         // Display stats or prompt to complete profile
@@ -278,88 +240,6 @@ public class DashboardController {
         }
 
         System.out.println("✓ Loaded " + todayWorkouts.size() + " workouts for today");
-    }
-
-    /**
-     * Load and display the progress chart with weight history
-     */
-    private void loadProgressChart() {
-        if (currentUser == null || progressChart == null) {
-            return;
-        }
-
-        // Get weight history from database
-        List<WeightHistory> weightHistory = dbManager.getWeightHistory(currentUser.getUserId());
-        
-        if (weightHistory == null || weightHistory.isEmpty()) {
-            System.out.println("ℹ No weight history data for progress chart");
-            progressChart.setTitle("Progress Over Time (No data yet)");
-            return;
-        }
-
-        // Clear existing data
-        progressChart.getData().clear();
-
-        // Create weight series
-        XYChart.Series<String, Number> weightSeries = new XYChart.Series<>();
-        weightSeries.setName("Weight (kg)");
-
-        // Reverse the list to show oldest to newest (left to right)
-        for (int i = weightHistory.size() - 1; i >= 0; i--) {
-            WeightHistory entry = weightHistory.get(i);
-            if (entry.getDate() != null) {
-                String dateStr = entry.getDate().toString();
-                weightSeries.getData().add(new XYChart.Data<>(dateStr, entry.getWeight()));
-            }
-        }
-
-        // Add series to chart
-        progressChart.getData().add(weightSeries);
-        
-        // Configure chart appearance
-        progressChart.setTitle("Weight Progress Over Time");
-        xAxis.setLabel("Date");
-        yAxis.setLabel("Weight (kg)");
-        
-        // Set minimum chart size to ensure labels fit
-        progressChart.setMinHeight(300);
-        progressChart.setPrefHeight(300);
-        
-        // Apply CSS to make ALL chart text visible in black
-        progressChart.setStyle("-fx-text-fill: black;");
-        
-        // Make axis labels visible (the "Date" and "Weight (kg)" text)
-        xAxis.setStyle("-fx-tick-label-fill: black; -fx-font-size: 12px;");
-        yAxis.setStyle("-fx-tick-label-fill: black; -fx-font-size: 12px;");
-        
-        // Force layout to apply styles
-        progressChart.applyCss();
-        progressChart.layout();
-        
-        // Make chart title visible
-        var chartTitle = progressChart.lookup(".chart-title");
-        if (chartTitle != null) {
-            chartTitle.setStyle("-fx-text-fill: black; -fx-font-size: 16px; -fx-font-weight: bold;");
-        }
-        
-        // Make axis label text visible and BOLD (Date and Weight (kg))
-        var xAxisLabel = xAxis.lookup(".axis-label");
-        if (xAxisLabel != null) {
-            xAxisLabel.setStyle("-fx-text-fill: black; -fx-font-size: 14px; -fx-font-weight: bold;");
-        }
-        
-        var yAxisLabel = yAxis.lookup(".axis-label");
-        if (yAxisLabel != null) {
-            yAxisLabel.setStyle("-fx-text-fill: black; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 0 10 0 0;");
-        }
-        
-        // Improve legend visibility with background and border
-        var legend = progressChart.lookup(".chart-legend");
-        if (legend != null) {
-            legend.setStyle("-fx-background-color: white; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-padding: 8; -fx-text-fill: black;");
-        }
-        
-        System.out.println("✓ Loaded progress chart with " + weightHistory.size() + " data points");
     }
 
     // Navigation Handlers
