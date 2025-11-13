@@ -11,7 +11,7 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.fittrack.controller.DashboardController"
             prefWidth="1000.0" prefHeight="650.0"
-            stylesheets="@src\main\styles\styleSheet.css"> <!-- src\main\styles\styleSheet.css -->
+            stylesheets="@styleSheet.css">
 
     <!-- Sidebar (User info + Quick Actions) -->
     <left>
@@ -96,40 +96,10 @@
                 </HBox>
                 -->
 
-                <!-- User Statistics Chart -->
-                <!-- Progress Chart Area -->
-                <VBox spacing="10.0"
-                      style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 10; -fx-border-color: #cccccc; -fx-border-width: 2; -fx-border-radius: 10;">
-                    <Label fx:id="statsTitleLabel"
-                           text="User's Current Progress So Far"
-                           style="-fx-text-fill: #212121;">
-                        <font>
-                            <Font name="System Bold" size="18.0"/>
-                        </font>
-                    </Label>
-                    <LineChart fx:id="progressChart" animated="true"
-                               legendVisible="true" prefHeight="320.0" minHeight="320.0"
-                               title="Weight Progress Over Time"
-                               style="-fx-background-color: white;">
-                        <xAxis>
-                            <CategoryAxis fx:id="xAxis" label="Date" 
-                                          style="-fx-tick-label-fill: black;" 
-                                          side="BOTTOM"/>
-                        </xAxis>
-                        <yAxis>
-                            <NumberAxis fx:id="yAxis" label="Weight (kg)" 
-                                        style="-fx-tick-label-fill: black;" 
-                                        side="LEFT" 
-                                        tickLabelRotation="0"
-                                        autoRanging="true"/>
-                        </yAxis>
-                    </LineChart>
-                </VBox>
-
                 <!-- Summary / Stats Area -->
                 <VBox spacing="10.0"
-                      style="-fx-background-color: #FAFAFA; -fx-padding: 20; -fx-background-radius: 10;">
-                    <Label text="Your Stats Summary" style="-fx-text-fill: #212121;">
+                      style="-fx-background-color: #E3F2FD; -fx-padding: 20; -fx-background-radius: 10; -fx-border-color: #2196F3; -fx-border-width: 2; -fx-border-radius: 10;">
+                    <Label text="📊 My Current Stats" style="-fx-text-fill: #212121;">
                         <font>
                             <Font name="System Bold" size="18.0"/>
                         </font>
@@ -144,8 +114,8 @@
 
                 <!-- Today's Workout Exercises -->
                 <VBox spacing="10.0"
-                      style="-fx-background-color: #E8F5E9; -fx-padding: 20; -fx-background-radius: 10;">
-                    <Label text="💪 Today's Workout Exercises" style="-fx-text-fill: #212121;">
+                      style="-fx-background-color: #FFF3E0; -fx-padding: 20; -fx-background-radius: 10; -fx-border-color: #FF9800; -fx-border-width: 2; -fx-border-radius: 10;">
+                    <Label text="💪 Current Workouts" style="-fx-text-fill: #212121;">
                         <font>
                             <Font name="System Bold" size="18.0"/>
                         </font>
