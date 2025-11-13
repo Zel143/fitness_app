@@ -21,6 +21,7 @@ This is a **complete, self-contained desktop application** with all core feature
   - Y-axis "Weight (kg)" label fully visible with bold styling and padding
   - Distinct white container with gray border for chart clarity
   - Presentation-ready dashboard appearance
+- ✅ **Fixed Delete Functionality** - Corrected workout log deletion using proper column name (`log_id`)
 - ✅ **Comprehensive testing** - All CRUD operations verified and working
 
 ## ✨ Core Features
@@ -85,6 +86,7 @@ This is a **complete, self-contained desktop application** with all core feature
     - Date-based workout tracking
     - View complete workout history
     - Add, delete, and clear workout entries
+    - Delete functionality verified and working correctly
 - Full CRUD operations with database integration
 - Seamless switching between planning and logging
 
@@ -784,6 +786,6 @@ rm fittrack.db
 
 ---
 
-**Version**: 1.0  
-**Last Updated**: November 2025  
+**Version**: 1.1  
+**Last Updated**: November 13, 2025  
 **Status**: ✅ Production Ready

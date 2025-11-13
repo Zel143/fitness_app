@@ -2,7 +2,7 @@
 
 This document provides a comprehensive and transparent breakdown of how Generative AI (specifically GitHub Copilot and ChatGPT) was utilized as a development tool and learning aid throughout the creation of this project.
 
-**Last Updated:** November 2025  
+**Last Updated:** November 13, 2025  
 **Project:** FitTrack - Fitness Tracking Application  
 **Technology Stack:** Java 21, JavaFX 21.0.2, SQLite 3.44.1.0, Maven  
 
@@ -920,7 +920,56 @@ if (user.age != null) {
 
 ---
 
-## �📚 21. References & Resources
+### Challenge 7: Workout Log Delete Functionality
+
+**Problem:**
+```java
+// Incorrect column name in DELETE statement
+String sql = "DELETE FROM workout_log WHERE workout_id = ?"; // ❌ Column doesn't exist
+```
+
+**Database Schema:**
+```sql
+CREATE TABLE workout_log (
+    log_id INTEGER PRIMARY KEY AUTOINCREMENT,  -- ✅ Actual primary key column
+    user_id INTEGER NOT NULL,
+    exercise_id INTEGER NOT NULL,
+    -- workout_id column doesn't exist in schema!
+);
+```
+
+**AI Contribution:**
+- Helped identify the schema mismatch between code and database
+- Confirmed correct column name from table definition
+- Suggested reviewing all delete methods for similar issues
+
+**Human Contribution:**
+- Discovered the bug through user testing (delete not working)
+- Searched codebase to locate the delete method
+- Analyzed database schema to find correct column name (`log_id`)
+- Applied fix and verified deletion works correctly
+- Tested with multiple workout log entries to ensure reliability
+
+**Solution:**
+```java
+// Fixed delete query with correct column name
+String sql = "DELETE FROM workout_log WHERE log_id = ?"; // ✅ Correct primary key
+```
+
+**Files Modified:**
+- `DatabaseManager.java` (line 838 in `deleteWorkoutLog()` method)
+
+**Impact:** 
+- Workout log deletion now works correctly from UI
+- Properly reflects deletions in the database
+- Users can successfully remove workout entries
+- Maintains data integrity across all CRUD operations
+
+**Date Fixed:** November 13, 2025
+
+---
+
+## 📚 21. References & Resources
 
 ### AI Tools Used:
 - **GitHub Copilot** - Primary code completion and suggestion tool
@@ -959,8 +1008,8 @@ However, the core intellectual work—understanding requirements, designing arch
 
 ---
 
-**Document Version:** 2.0  
-**Last Updated:** November 5, 2025  
+**Document Version:** 2.1  
+**Last Updated:** November 13, 2025  
 **Prepared By:** FitTrack Development Team  
 **Course:** Object-Oriented Programming  
 **Institution:** [Your Institution Name]

@@ -835,7 +835,7 @@ public class DatabaseManager {
      * Deletes a workout log by its ID.
      */
     public boolean deleteWorkoutLog(int workoutId) {
-        String sql = "DELETE FROM workout_log WHERE workout_id = ?";
+        String sql = "DELETE FROM workout_log WHERE log_id = ?";
 
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {

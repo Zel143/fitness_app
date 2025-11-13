@@ -2,7 +2,7 @@
 
 **Comprehensive presentation flow with deep dive technical details for team presentations**
 
-**Last Updated:** November 7, 2025  
+**Last Updated:** November 13, 2025  
 **Target Audience:** Technical presentations, code walkthroughs, project demos  
 **Estimated Duration:** 45-60 minutes
 
@@ -29,7 +29,7 @@
 ### Talking Points:
 > "FitTrack is a comprehensive fitness tracking desktop application built entirely in Java. We chose JavaFX for its modern UI capabilities and FXML support, which allows us to separate our UI design from our business logic. The application migrated from MySQL to SQLite, making it completely portable with zero configuration needed."
 
-> "The dashboard now features a real-time view of today's workout exercises, making it easy for users to see their current day's activity at a glance."
+> "The dashboard now features a real-time view of today's workout exercises, making it easy for users to see their current day's activity at a glance. All CRUD operations have been thoroughly tested and verified, including recent fixes to ensure proper deletion of workout logs from the database."
 
 ---
 
@@ -1101,8 +1101,8 @@ This presentation guide covers all major aspects of the FitTrack application wit
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** November 7, 2025  
+**Document Version:** 1.1  
+**Last Updated:** November 13, 2025  
 **Created By:** FitTrack Development Team
 
 ---
