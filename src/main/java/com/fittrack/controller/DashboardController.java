@@ -252,6 +252,10 @@ public class DashboardController {
     @FXML private void handleProgressButtonAction(ActionEvent e) { switchScene(e, "Progress.fxml", "FitTrack - Progress"); }
     @FXML private void handleFoodLogButtonAction(ActionEvent e) { switchScene(e, "FoodLog.fxml", "FitTrack - Food Log"); }
 
+    // Dashboard square handlers (Stats and Exercises)
+    @FXML private void handleStatsButtonAction(ActionEvent e) { switchScene(e, "Progress.fxml", "FitTrack - Progress"); }
+    @FXML private void handleExercisesButtonAction(ActionEvent e) { switchScene(e, "Workouts.fxml", "FitTrack - Workouts"); }
+
     @FXML
     private void handleLogoutButtonAction(ActionEvent e) {
         SessionManager.getInstance().logout();
