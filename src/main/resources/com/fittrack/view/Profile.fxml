@@ -14,24 +14,27 @@
 
     <!-- === SIDEBAR === -->
     <left>
-        <VBox prefWidth="220.0" spacing="20.0" alignment="TOP_CENTER"
+        <VBox prefWidth="220.0" spacing="20.0"
+              alignment="TOP_LEFT"
               styleClass="sidebar">
+
             <Label fx:id="userLabel" text="Welcome, User!" styleClass="sidebar-user">
                 <font><Font name="System Bold" size="18"/></font>
             </Label>
             <Separator style="-fx-background-color: white;"/>
 
-            <VBox spacing="10.0" alignment="TOP_CENTER">
+            <VBox spacing="10.0" alignment="TOP_LEFT">
                 <Button text="🏠 Dashboard" styleClass="sidebar-button" onAction="#handleDashboardButtonAction"/>
-                <Button text="🎯 Goals" styleClass="sidebar-button"/>
-                <Button text="📅 Workouts" styleClass="sidebar-button"/>
-                <Button text="📈 Progress" styleClass="sidebar-button"/>
-                <Button text="🍎 Food Log" styleClass="sidebar-button"/>
+                <Button text="🎯 Goals" styleClass="sidebar-button" onAction="#handleGoalsButtonAction"/>
+                <Button text="📅 Workouts" styleClass="sidebar-button" onAction="#handleWorkoutsButtonAction"/>
+                <Button text="📈 Progress" styleClass="sidebar-button" onAction="#handleProgressButtonAction"/>
+                <Button text="🍎 Food Log" styleClass="sidebar-button" onAction="#handleFoodLogButtonAction"/>
+                <Button text="👤 Profile" styleClass="sidebar-button" style="-fx-background-color: #1976D2;"/>
             </VBox>
 
             <Pane VBox.vgrow="ALWAYS"/>
 
-            <Button text="🚪 Logout" styleClass="logout-button"/>
+            <Button text="🚪 Logout" styleClass="logout-button" onAction="#handleLogoutButtonAction"/>
         </VBox>
     </left>
 

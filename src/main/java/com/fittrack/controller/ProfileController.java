@@ -1,17 +1,18 @@
 package com.fittrack.controller;
 
+import java.io.IOException;
+
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
+
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-
-import java.io.IOException;
 
 /**
  * ProfileController - Controller for the Profile.fxml view
@@ -20,6 +21,7 @@ import java.io.IOException;
 public class ProfileController {
 
     @FXML private Label welcomeLabel;
+    @FXML private Label userLabel;
     @FXML private Label messageLabel;
     @FXML private TextField ageField;
     @FXML private ComboBox<String> genderComboBox;
@@ -42,6 +44,7 @@ public class ProfileController {
 
         if (currentUser != null) {
             welcomeLabel.setText("Welcome, " + currentUser.getUsername() + "!");
+            userLabel.setText("Welcome, " + currentUser.getUsername() + "!");
             loadUserProfile();
         } else {
             welcomeLabel.setText("Welcome!");
@@ -161,6 +164,58 @@ public class ProfileController {
             SceneSwitcher.switchScene(event, "Dashboard.fxml", "FitTrack - Dashboard");
         } catch (IOException e) {
             showError("Error loading dashboard.");
+            System.err.println("✗ Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle Goals button click
+     */
+    @FXML
+    private void handleGoalsButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Goals.fxml", "FitTrack - Goals");
+        } catch (IOException e) {
+            showError("Error loading goals screen.");
+            System.err.println("✗ Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle Workouts button click
+     */
+    @FXML
+    private void handleWorkoutsButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "WorkoutPlans.fxml", "FitTrack - Workouts");
+        } catch (IOException e) {
+            showError("Error loading workouts screen.");
+            System.err.println("✗ Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle Progress button click
+     */
+    @FXML
+    private void handleProgressButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Progress.fxml", "FitTrack - Progress");
+        } catch (IOException e) {
+            showError("Error loading progress screen.");
+            System.err.println("✗ Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle Food Log button click
+     */
+    @FXML
+    private void handleFoodLogButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "FoodLog.fxml", "FitTrack - Food Log");
+        } catch (IOException e) {
+            showError("Error loading food log screen.");
             System.err.println("✗ Error: " + e.getMessage());
         }
     }
