@@ -1,51 +1,77 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.DatePicker?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<VBox spacing="20.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fittrack.controller.GoalsController">
-   <padding>
-      <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
-   </padding>
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.fittrack.controller.GoalsController"
+            prefWidth="1200.0" prefHeight="700.0"
+            stylesheets="@/com/fittrack/view/styleSheet.css">
+
+    <!-- === SIDEBAR === -->
+    <left>
+        <VBox prefWidth="220.0" spacing="20.0"
+              alignment="TOP_LEFT"
+              styleClass="sidebar">
+
+            <Label fx:id="userLabel" text="Welcome, User!" styleClass="sidebar-user">
+                <font><Font name="System Bold" size="18"/></font>
+            </Label>
+            <Separator style="-fx-background-color: white;"/>
+
+            <VBox spacing="10.0" alignment="TOP_LEFT">
+                <Button text="🏠 Dashboard" styleClass="sidebar-button" onAction="#handleDashboardButtonAction"/>
+                <Button text="🎯 Goals" styleClass="sidebar-button" style="-fx-background-color: #1976D2;"/>
+                <Button text="📅 Workouts" styleClass="sidebar-button" onAction="#handleWorkoutsButtonAction"/>
+                <Button text="📈 Progress" styleClass="sidebar-button" onAction="#handleProgressButtonAction"/>
+                <Button text="🍎 Food Log" styleClass="sidebar-button" onAction="#handleFoodLogButtonAction"/>
+                <Button text="👤 Profile" styleClass="sidebar-button" onAction="#handleProfileButtonAction"/>
+            </VBox>
+
+            <Pane VBox.vgrow="ALWAYS"/>
+
+            <Button text="🚪 Logout" styleClass="logout-button" onAction="#handleLogoutButtonAction"/>
+        </VBox>
+    </left>
+
+    <!-- === MAIN CONTENT AREA === -->
+    <center>
+        <ScrollPane fitToWidth="true">
+            <VBox spacing="20.0">
+                <padding>
+                    <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
+                </padding>
+
+                <!-- Title -->
+                <Label fx:id="welcomeLabel" text="My Fitness Goals">
+                    <font>
+                        <Font name="System Bold" size="24.0" />
+                    </font>
+                </Label>
    
-   <!-- Title -->
-   <Label fx:id="welcomeLabel" text="My Fitness Goals">
-      <font>
-         <Font name="System Bold" size="24.0" />
-      </font>
-   </Label>
+                <!-- Goals Table -->
+                <TableView fx:id="goalsTable" prefHeight="200.0">
+                    <columns>
+                        <TableColumn fx:id="goalTypeColumn" text="Goal Type" prefWidth="150.0" />
+                        <TableColumn fx:id="targetValueColumn" text="Target" prefWidth="80.0" />
+                        <TableColumn fx:id="targetUnitColumn" text="Unit" prefWidth="80.0" />
+                        <TableColumn fx:id="targetDateColumn" text="Target Date" prefWidth="120.0" />
+                        <TableColumn fx:id="statusColumn" text="Status" prefWidth="100.0" />
+                    </columns>
+                </TableView>
    
-   <!-- Goals Table -->
-   <TableView fx:id="goalsTable" prefHeight="200.0">
-      <columns>
-         <TableColumn fx:id="goalTypeColumn" text="Goal Type" prefWidth="150.0" />
-         <TableColumn fx:id="targetValueColumn" text="Target" prefWidth="80.0" />
-         <TableColumn fx:id="targetUnitColumn" text="Unit" prefWidth="80.0" />
-         <TableColumn fx:id="targetDateColumn" text="Target Date" prefWidth="120.0" />
-         <TableColumn fx:id="statusColumn" text="Status" prefWidth="100.0" />
-      </columns>
-   </TableView>
-   
-   <!-- Add Goal Form -->
-   <VBox spacing="15.0" style="-fx-background-color: #f5f5f5; -fx-padding: 20; -fx-background-radius: 10;">
-      <Label text="Add New Goal">
-         <font>
-            <Font name="System Bold" size="18.0" />
-         </font>
-      </Label>
+                <!-- Add Goal Form -->
+                <VBox spacing="15.0" style="-fx-background-color: #f5f5f5; -fx-padding: 20; -fx-background-radius: 10;">
+                    <Label text="Add New Goal">
+                        <font>
+                            <Font name="System Bold" size="18.0" />
+                        </font>
+                    </Label>
       
-      <GridPane hgap="10.0" vgap="15.0">
+                    <GridPane hgap="10.0" vgap="15.0">
          <columnConstraints>
             <ColumnConstraints percentWidth="50.0" />
             <ColumnConstraints percentWidth="50.0" />
@@ -73,32 +99,35 @@
          <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
             <Label text="Target Date:" />
             <DatePicker fx:id="targetDatePicker" prefWidth="200.0" />
-         </VBox>
-      </GridPane>
+                        </VBox>
+                    </GridPane>
       
-      <!-- Message Label -->
-      <Label fx:id="messageLabel" />
+                    <!-- Message Label -->
+                    <Label fx:id="messageLabel" />
       
-      <!-- Add Goal Button -->
-      <Button text="Add Goal" onAction="#handleAddGoalButtonAction" prefWidth="150.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white;">
-         <font>
-            <Font size="14.0" />
-         </font>
-      </Button>
-   </VBox>
+                    <!-- Add Goal Button -->
+                    <Button text="Add Goal" onAction="#handleAddGoalButtonAction" prefWidth="150.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white;">
+                        <font>
+                            <Font size="14.0" />
+                        </font>
+                    </Button>
+                </VBox>
    
-   <!-- Action Buttons -->
-   <HBox spacing="10.0" alignment="CENTER">
-      <Button text="Delete Selected" onAction="#handleDeleteGoalButtonAction" prefWidth="150.0" style="-fx-background-color: #f44336; -fx-text-fill: white;">
-         <font>
-            <Font size="14.0" />
-         </font>
-      </Button>
-      
-      <Button text="Back to Dashboard" onAction="#handleBackButtonAction" prefWidth="150.0">
-         <font>
-            <Font size="14.0" />
-         </font>
-      </Button>
-   </HBox>
-</VBox>
+                <!-- Action Buttons -->
+                <HBox spacing="10.0" alignment="CENTER">
+                    <Button text="Delete Selected" onAction="#handleDeleteGoalButtonAction" prefWidth="150.0" style="-fx-background-color: #f44336; -fx-text-fill: white;">
+                        <font>
+                            <Font size="14.0" />
+                        </font>
+                    </Button>
+                    
+                    <Button text="Back to Dashboard" onAction="#handleBackButtonAction" prefWidth="150.0" style="-fx-background-color: #2196F3; -fx-text-fill: white;">
+                        <font>
+                            <Font size="14.0" />
+                        </font>
+                    </Button>
+                </HBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

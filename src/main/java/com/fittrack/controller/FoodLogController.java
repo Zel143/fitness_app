@@ -30,6 +30,7 @@ import javafx.scene.layout.Region; // <-- 1. IMPORT ADDED
 public class FoodLogController {
 
     @FXML private Label welcomeLabel;
+    @FXML private Label userLabel;
     @FXML private TableView<FoodLog> foodLogTable;
     @FXML private TableColumn<FoodLog, String> foodNameColumn;
     @FXML private TableColumn<FoodLog, Integer> caloriesColumn;
@@ -60,6 +61,7 @@ public class FoodLogController {
 
         if (currentUser != null) {
             welcomeLabel.setText(currentUser.getUsername() + "'s Food Log");
+            userLabel.setText("Welcome, " + currentUser.getUsername() + "!");
             System.out.println("✓ FoodLog screen loaded for: " + currentUser.getUsername());
             setupTableColumns();
             loadFoodLog();
@@ -228,13 +230,86 @@ public class FoodLogController {
         updateDailyTotals();
     }
 
+    /**
+     * Handle Dashboard button click
+     */
     @FXML
-    private void handleBackButtonAction(ActionEvent event) {
+    private void handleDashboardButtonAction(ActionEvent event) {
         try {
             SceneSwitcher.switchScene(event, "Dashboard.fxml", "FitTrack - Dashboard");
         } catch (IOException e) {
             System.err.println("✗ Error loading Dashboard: " + e.getMessage());
         }
+    }
+
+    /**
+     * Handle Goals button click
+     */
+    @FXML
+    private void handleGoalsButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Goals.fxml", "FitTrack - Goals");
+        } catch (IOException e) {
+            System.err.println("✗ Error loading Goals: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle Workouts button click
+     */
+    @FXML
+    private void handleWorkoutsButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "WorkoutPlans.fxml", "FitTrack - Workouts");
+        } catch (IOException e) {
+            System.err.println("✗ Error loading Workouts: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle Progress button click
+     */
+    @FXML
+    private void handleProgressButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Progress.fxml", "FitTrack - Progress");
+        } catch (IOException e) {
+            System.err.println("✗ Error loading Progress: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle Profile button click
+     */
+    @FXML
+    private void handleProfileButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Profile.fxml", "FitTrack - Profile");
+        } catch (IOException e) {
+            System.err.println("✗ Error loading Profile: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle Logout button click
+     */
+    @FXML
+    private void handleLogoutButtonAction(ActionEvent event) {
+        SessionManager.getInstance().logout();
+        System.out.println("✓ User logged out");
+        try {
+            SceneSwitcher.switchScene(event, "Login.fxml", "FitTrack - Login");
+        } catch (IOException e) {
+            System.err.println("✗ Error loading Login: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle Back to Dashboard button click
+     */
+    @FXML
+    private void handleBackButtonAction(ActionEvent event) {
+        handleDashboardButtonAction(event);
     }
 
     private void clearForm() {

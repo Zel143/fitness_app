@@ -35,6 +35,7 @@ public class WorkoutPlansController {
 
     // Workout Plans Tab
     @FXML private Label welcomeLabel;
+    @FXML private Label userLabel;
     @FXML private ListView<WorkoutPlan> plansListView;
     @FXML private TextArea planDetailsArea;
     
@@ -74,6 +75,7 @@ public class WorkoutPlansController {
 
         if (currentUser != null) {
             welcomeLabel.setText(currentUser.getUsername() + "'s Workout Plans");
+            userLabel.setText("Welcome, " + currentUser.getUsername() + "!");
             System.out.println("✓ WorkoutPlans screen loaded for: " + currentUser.getUsername());
             
             // Setup Workout Plans tab
@@ -276,15 +278,85 @@ public class WorkoutPlansController {
     }
 
     /**
-     * Handle Back to Dashboard button click
+     * Handle Dashboard button click
      */
     @FXML
-    private void handleBackButtonAction(ActionEvent event) {
+    private void handleDashboardButtonAction(ActionEvent event) {
         try {
             SceneSwitcher.switchScene(event, "Dashboard.fxml", "FitTrack - Dashboard");
         } catch (IOException e) {
             System.err.println("✗ Error loading Dashboard: " + e.getMessage());
         }
+    }
+
+    /**
+     * Handle Goals button click
+     */
+    @FXML
+    private void handleGoalsButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Goals.fxml", "FitTrack - Goals");
+        } catch (IOException e) {
+            System.err.println("✗ Error loading Goals: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle Progress button click
+     */
+    @FXML
+    private void handleProgressButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Progress.fxml", "FitTrack - Progress");
+        } catch (IOException e) {
+            System.err.println("✗ Error loading Progress: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle Food Log button click
+     */
+    @FXML
+    private void handleFoodLogButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "FoodLog.fxml", "FitTrack - Food Log");
+        } catch (IOException e) {
+            System.err.println("✗ Error loading Food Log: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle Profile button click
+     */
+    @FXML
+    private void handleProfileButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Profile.fxml", "FitTrack - Profile");
+        } catch (IOException e) {
+            System.err.println("✗ Error loading Profile: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle Logout button click
+     */
+    @FXML
+    private void handleLogoutButtonAction(ActionEvent event) {
+        SessionManager.getInstance().logout();
+        System.out.println("✓ User logged out");
+        try {
+            SceneSwitcher.switchScene(event, "Login.fxml", "FitTrack - Login");
+        } catch (IOException e) {
+            System.err.println("✗ Error loading Login: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle Back to Dashboard button click
+     */
+    @FXML
+    private void handleBackButtonAction(ActionEvent event) {
+        handleDashboardButtonAction(event);
     }
 
     // ==================== WORKOUT LOG TAB METHODS ====================
