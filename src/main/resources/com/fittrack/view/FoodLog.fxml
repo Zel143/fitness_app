@@ -9,7 +9,8 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.fittrack.controller.FoodLogController"
             prefWidth="1200.0" prefHeight="700.0"
-            stylesheets="@/com/fittrack/view/styleSheet.css">
+            stylesheets="@/com/fittrack/view/styleSheet.css"
+            >
 
     <!-- === SIDEBAR === -->
     <left>
@@ -38,9 +39,9 @@
 
     <!-- === MAIN CONTENT AREA === -->
     <center>
-        <ScrollPane fitToWidth="true" styleClass="foodlog-container">
+        <ScrollPane fitToWidth="true">
             <content>
-                <VBox spacing="25.0" minHeight="700.0" alignment="TOP_CENTER" style="-fx-padding: 40;">
+                <VBox spacing="25.0" minHeight="700.0" alignment="TOP_CENTER" style="-fx-padding: 40;" styleClass="foodlog-container">
                     
                     <!-- Page Title -->
                     <Label fx:id="welcomeLabel" text="Food Log" styleClass="foodlog-title" />
