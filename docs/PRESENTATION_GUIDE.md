@@ -23,6 +23,8 @@
 
 ### Deep Dive Tips:
 - Show [`pom.xml`](../pom.xml) highlighting key dependencies
+- Demonstrate the dual-tab workout interface (Plans + Daily Log)
+- Highlight the enterprise-grade logging implementation (SLF4J)
 - Explain why JavaFX was chosen (rich UI components, Scene Builder integration)
 - Mention the transition from MySQL to SQLite for portability
 
