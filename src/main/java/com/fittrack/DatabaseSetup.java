@@ -1,5 +1,8 @@
 package com.fittrack;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fittrack.model.DatabaseManager;
 
 /**
@@ -7,6 +10,8 @@ import com.fittrack.model.DatabaseManager;
  * Run this once to initialize your database
  */
 public class DatabaseSetup {
+    
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseSetup.class);
     
     public static void main(String[] args) {
         System.out.println("==============================================");
@@ -16,14 +21,14 @@ public class DatabaseSetup {
         DatabaseManager dbManager = new DatabaseManager();
         
         // Test connection
-        System.out.println("1. Testing database connection...");
+        logger.info("1. Testing database connection...");
         var conn = dbManager.connect();
         if (conn != null) {
-            System.out.println("   ✓ Database connection successful!");
+            logger.info("   ✓ Database connection successful!");
             try {
                 conn.close();
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Error closing connection", e);
             }
         } else {
             System.out.println("   ✗ Database connection FAILED!");

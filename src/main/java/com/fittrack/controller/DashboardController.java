@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.Goal;
 import com.fittrack.model.User;
@@ -27,6 +30,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
  */
 public class DashboardController {
 
+    private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
     private static final double CM_TO_METERS = 100.0;
 
     @FXML
@@ -62,14 +66,8 @@ public class DashboardController {
      */
     @FXML
     public void initialize() {
-        System.out.println("====== DASHBOARD INITIALIZE START ======");
-        System.out.println("DEBUG: userLabel is " + (userLabel != null ? "initialized" : "NULL"));
-        System.out.println("DEBUG: statsLabel is " + (statsLabel != null ? "initialized" : "NULL"));
-        
         // Get the logged-in user from SessionManager
         currentUser = SessionManager.getInstance().getLoggedInUser();
-        System.out.println("DEBUG: currentUser from SessionManager: " + 
-            (currentUser != null ? currentUser.getUsername() : "NULL"));
 
         if (currentUser != null) {
             // Reload user data from database to get latest profile updates
@@ -80,15 +78,12 @@ public class DashboardController {
             }
             
             userLabel.setText("Welcome, " + currentUser.getUsername() + "!");
-            System.out.println("DEBUG: About to call updateStatsDisplay()...");
             updateStatsDisplay();
-            System.out.println("DEBUG: About to call loadTodayWorkouts()...");
             loadTodayWorkouts();
         } else {
-            userLabel.setText("Welcome, Guest!");
-            System.out.println("⚠ Warning: No user logged in");
+            userLabel.setText("Welcome!");
+            logger.warn("⚠ Warning: No user logged in");
         }
-        System.out.println("====== DASHBOARD INITIALIZE END ======");
 
         // Setup table columns if table exists
         if (todayWorkoutTable != null) {
@@ -101,19 +96,12 @@ public class DashboardController {
     }
 
     private void updateStatsDisplay() {
-        System.out.println("DEBUG: updateStatsDisplay() called");
-        System.out.println("DEBUG: Current user: " + (currentUser != null ? currentUser.getUsername() : "NULL"));
-        System.out.println("DEBUG: statsLabel is: " + (statsLabel != null ? "initialized" : "NULL"));
-        
         StringBuilder stats = new StringBuilder();
         boolean hasAnyData = false;
         
         // Reload ALL data from database for fresh stats
         List<WeightHistory> weightHistory = dbManager.getWeightHistory(currentUser.getUserId());
         List<Goal> goals = dbManager.getGoals(currentUser.getUserId());
-        
-        System.out.println("DEBUG: Weight history entries: " + (weightHistory != null ? weightHistory.size() : "NULL"));
-        System.out.println("DEBUG: Goals: " + (goals != null ? goals.size() : "NULL"));
         
         // Personal Information Section
         stats.append("━━━ Personal Info ━━━\n");
@@ -185,22 +173,12 @@ public class DashboardController {
         }
 
         // Display stats or prompt to complete profile
-        System.out.println("DEBUG: hasAnyData = " + hasAnyData);
-        System.out.println("DEBUG: Stats content length = " + stats.length());
-        
         if (hasAnyData) {
-            String statsText = stats.toString();
-            System.out.println("DEBUG: Setting stats text (first 100 chars): " + 
-                (statsText.length() > 100 ? statsText.substring(0, 100) : statsText));
-            statsLabel.setText(statsText);
+            statsLabel.setText(stats.toString());
         } else {
             String defaultText = "━━━ Get Started ━━━\n\nComplete your profile to see your fitness stats!\n\nClick 'My Profile' to add:\n• Age & Gender\n• Height & Weight\n• Fitness Level";
-            System.out.println("DEBUG: Setting default 'Get Started' text");
             statsLabel.setText(defaultText);
         }
-        
-        System.out.println("DEBUG: statsLabel text after update: " + 
-            (statsLabel.getText() != null ? "Set (" + statsLabel.getText().length() + " chars)" : "NULL"));
     }
 
     /**
@@ -246,16 +224,24 @@ public class DashboardController {
     }
 
     // Navigation Handlers
+    @SuppressWarnings("unused") // Called by FXML
     @FXML private void handleProfileButtonAction(ActionEvent e) { switchScene(e, "Profile.fxml", "FitTrack - Profile"); }
+    @SuppressWarnings("unused") // Called by FXML
     @FXML private void handleGoalsButtonAction(ActionEvent e) { switchScene(e, "Goals.fxml", "FitTrack - My Goals"); }
-    @FXML private void handleWorkoutPlansButtonAction(ActionEvent e) { switchScene(e, "Workouts.fxml", "FitTrack - Workouts"); }
+    @SuppressWarnings("unused") // Called by FXML
+    @FXML private void handleWorkoutPlansButtonAction(ActionEvent e) { switchScene(e, "WorkoutPlans.fxml", "FitTrack - Workouts"); }
+    @SuppressWarnings("unused") // Called by FXML
     @FXML private void handleProgressButtonAction(ActionEvent e) { switchScene(e, "Progress.fxml", "FitTrack - Progress"); }
+    @SuppressWarnings("unused") // Called by FXML
     @FXML private void handleFoodLogButtonAction(ActionEvent e) { switchScene(e, "FoodLog.fxml", "FitTrack - Food Log"); }
 
     // Dashboard square handlers (Stats and Exercises)
+    @SuppressWarnings("unused") // Called by FXML
     @FXML private void handleStatsButtonAction(ActionEvent e) { switchScene(e, "Progress.fxml", "FitTrack - Progress"); }
-    @FXML private void handleExercisesButtonAction(ActionEvent e) { switchScene(e, "Workouts.fxml", "FitTrack - Workouts"); }
+    @SuppressWarnings("unused") // Called by FXML
+    @FXML private void handleExercisesButtonAction(ActionEvent e) { switchScene(e, "WorkoutPlans.fxml", "FitTrack - Workouts"); }
 
+    @SuppressWarnings("unused") // Called by FXML
     @FXML
     private void handleLogoutButtonAction(ActionEvent e) {
         SessionManager.getInstance().logout();
@@ -266,7 +252,7 @@ public class DashboardController {
         try {
             SceneSwitcher.switchScene(e, fxml, title);
         } catch (IOException ex) {
-            System.err.println("✗ Error loading " + fxml + ": " + ex.getMessage());
+            logger.error("✗ Error loading {}", fxml, ex);
         }
     }
 }

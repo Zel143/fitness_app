@@ -3,6 +3,9 @@ package com.fittrack.controller;
 import java.io.IOException;
 import java.time.LocalDate;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
 import com.fittrack.model.WeightHistory;
@@ -13,9 +16,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -32,11 +33,11 @@ import javafx.scene.control.cell.PropertyValueFactory;
  */
 public class ProgressController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProgressController.class);
+
     @FXML private Label welcomeLabel;
     @FXML private Label userLabel;
     @FXML private LineChart<String, Number> weightChart;
-    @FXML private CategoryAxis xAxis;
-    @FXML private NumberAxis yAxis;
     @FXML private TableView<WeightHistory> weightHistoryTable;
     @FXML private TableColumn<WeightHistory, LocalDate> dateColumn;
     @FXML private TableColumn<WeightHistory, Double> weightColumn;
@@ -66,7 +67,7 @@ public class ProgressController {
             updateStats();
         } else {
             welcomeLabel.setText("Progress Tracking");
-            System.out.println("⚠ Warning: No user logged in");
+            logger.warn("⚠ Warning: No user logged in");
         }
 
         // Set today's date as default
@@ -93,7 +94,7 @@ public class ProgressController {
         var history = dbManager.getWeightHistory(currentUser.getUserId());
         weightHistoryList.addAll(history);
         
-        System.out.println("✓ Loaded " + history.size() + " weight history entries from database");
+        logger.info("✓ Loaded {} weight history entries from database", history.size());
     }
 
     /**
@@ -190,14 +191,11 @@ public class ProgressController {
             date
         );
 
-        System.out.println("DEBUG: Saving weight entry - User ID: " + currentUser.getUserId() + 
-                         ", Weight: " + weight + ", Date: " + date);
-
         // Save to database
         boolean success = dbManager.saveWeightHistory(newEntry);
 
         if (success) {
-            System.out.println("✓ Weight entry saved to database with ID: " + newEntry.getId());
+            logger.info("✓ Weight entry saved to database with ID: {}", newEntry.getId());
             
             // Reload from database to ensure correct data and IDs
             loadWeightHistory();
@@ -211,10 +209,10 @@ public class ProgressController {
             datePicker.setValue(LocalDate.now());
             
             showSuccess("Weight recorded successfully!");
-            System.out.println("✓ Weight entry added: " + weight + " kg on " + date);
+            logger.info("✓ Weight entry added: {} kg on {}", weight, date);
         } else {
             showError("Failed to save weight entry. Please try again.");
-            System.err.println("✗ Failed to save weight history to database");
+            logger.error("✗ Failed to save weight history to database");
         }
     }
 
@@ -237,12 +235,10 @@ public class ProgressController {
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                System.out.println("DEBUG: Deleting weight entry with ID: " + selectedEntry.getId());
-                
                 boolean success = dbManager.deleteWeightHistory(selectedEntry.getId());
                 
                 if (success) {
-                    System.out.println("✓ Weight entry deleted from database with ID: " + selectedEntry.getId());
+                    logger.info("✓ Weight entry deleted from database with ID: {}", selectedEntry.getId());
                     
                     // Reload from database to ensure data is current
                     loadWeightHistory();
@@ -254,7 +250,7 @@ public class ProgressController {
                     showSuccess("Entry deleted successfully!");
                 } else {
                     showError("Failed to delete weight entry. Please try again.");
-                    System.err.println("✗ Failed to delete weight history from database");
+                    logger.error("✗ Failed to delete weight history from database");
                 }
             }
         });
@@ -268,7 +264,7 @@ public class ProgressController {
         try {
             SceneSwitcher.switchScene(event, "Dashboard.fxml", "FitTrack - Dashboard");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Dashboard: " + e.getMessage());
+            logger.error("✗ Error loading Dashboard.fxml", e);
         }
     }
 
@@ -280,7 +276,7 @@ public class ProgressController {
         try {
             SceneSwitcher.switchScene(event, "Goals.fxml", "FitTrack - Goals");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Goals: " + e.getMessage());
+            logger.error("✗ Error loading Goals.fxml", e);
         }
     }
 
@@ -292,7 +288,7 @@ public class ProgressController {
         try {
             SceneSwitcher.switchScene(event, "WorkoutPlans.fxml", "FitTrack - Workouts");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Workouts: " + e.getMessage());
+            logger.error("✗ Error loading WorkoutPlans.fxml", e);
         }
     }
 
@@ -304,7 +300,7 @@ public class ProgressController {
         try {
             SceneSwitcher.switchScene(event, "FoodLog.fxml", "FitTrack - Food Log");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Food Log: " + e.getMessage());
+            logger.error("✗ Error loading FoodLog.fxml", e);
         }
     }
 
@@ -316,7 +312,7 @@ public class ProgressController {
         try {
             SceneSwitcher.switchScene(event, "Profile.fxml", "FitTrack - Profile");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Profile: " + e.getMessage());
+            logger.error("✗ Error loading Profile.fxml", e);
         }
     }
 
@@ -326,11 +322,11 @@ public class ProgressController {
     @FXML
     private void handleLogoutButtonAction(ActionEvent event) {
         SessionManager.getInstance().logout();
-        System.out.println("✓ User logged out");
+        logger.info("✓ User logged out");
         try {
             SceneSwitcher.switchScene(event, "Login.fxml", "FitTrack - Login");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Login: " + e.getMessage());
+            logger.error("✗ Error loading Login", e);
         }
     }
 

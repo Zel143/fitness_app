@@ -3,6 +3,9 @@ package com.fittrack.controller;
 import java.io.IOException;
 import java.time.LocalDate;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
 import com.fittrack.model.WorkoutLog;
@@ -32,6 +35,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
  * Manages both workout scheduling and daily exercise logging
  */
 public class WorkoutPlansController {
+
+    private static final Logger logger = LoggerFactory.getLogger(WorkoutPlansController.class);
 
     // Workout Plans Tab
     @FXML private Label welcomeLabel;
@@ -76,7 +81,7 @@ public class WorkoutPlansController {
         if (currentUser != null) {
             welcomeLabel.setText(currentUser.getUsername() + "'s Workout Plans");
             userLabel.setText("Welcome, " + currentUser.getUsername() + "!");
-            System.out.println("✓ WorkoutPlans screen loaded for: " + currentUser.getUsername());
+            logger.info("✓ WorkoutPlans screen loaded for: {}", currentUser.getUsername());
             
             // Setup Workout Plans tab
             setupListView();
@@ -88,7 +93,7 @@ public class WorkoutPlansController {
             loadWorkoutLogs();
         } else {
             welcomeLabel.setText("Workout Plans");
-            System.out.println("⚠ Warning: No user logged in");
+            logger.warn("⚠ Warning: No user logged in");
         }
     }
 
@@ -145,7 +150,7 @@ public class WorkoutPlansController {
         var plans = dbManager.getWorkoutPlans(currentUser.getUserId());
         plansList.addAll(plans);
         
-        System.out.println("✓ Loaded " + plans.size() + " workout plans from database");
+        logger.info("✓ Loaded {} workout plans from database", plans.size());
     }
 
     /**
@@ -173,8 +178,8 @@ public class WorkoutPlansController {
         String difficulty = difficultyComboBox.getValue();
         String durationStr = durationWeeksField.getText().trim();
 
-        System.out.println("ℹ Add Plan button clicked");
-        System.out.println("ℹ Plan name: " + planName);
+        logger.info("ℹ Add Plan button clicked");
+        logger.info("ℹ Plan name: {}", planName);
 
         // Validation
         if (planName.isEmpty()) {
@@ -209,7 +214,7 @@ public class WorkoutPlansController {
             return;
         }
 
-        System.out.println("ℹ Creating WorkoutPlan object...");
+        logger.info("ℹ Creating WorkoutPlan object...");
 
         // Create new plan
         WorkoutPlan newPlan = new WorkoutPlan();
@@ -219,13 +224,13 @@ public class WorkoutPlansController {
         newPlan.difficulty = difficulty;
         newPlan.durationWeeks = duration;
 
-        System.out.println("ℹ Saving to database...");
+        logger.info("ℹ Saving to database...");
 
         // Save to database
         boolean success = dbManager.saveWorkoutPlan(newPlan);
 
         if (success) {
-            System.out.println("✓ Workout plan saved to database with ID: " + newPlan.planId);
+            logger.info("✓ Workout plan saved to database with ID: {}", newPlan.planId);
             
             // Add to UI list
             plansList.add(newPlan);
@@ -236,10 +241,10 @@ public class WorkoutPlansController {
             // Clear form
             clearForm();
             
-            System.out.println("✓ Workout plan added to UI: " + planName);
+            logger.info("✓ Workout plan added to UI: {}", planName);
         } else {
             showError("Failed to save workout plan. Please try again.");
-            System.err.println("✗ Failed to save workout plan to database");
+            logger.error("✗ Failed to save workout plan to database");
         }
     }
 
@@ -268,10 +273,10 @@ public class WorkoutPlansController {
                     plansList.remove(selectedPlan);
                     planDetailsArea.clear();
                     showSuccess("Workout plan deleted successfully!");
-                    System.out.println("✓ Workout plan deleted from database with ID: " + selectedPlan.planId);
+                    logger.info("✓ Workout plan deleted from database with ID: {}", selectedPlan.planId);
                 } else {
                     showError("Failed to delete workout plan. Please try again.");
-                    System.err.println("✗ Failed to delete workout plan from database");
+                    logger.error("✗ Failed to delete workout plan from database");
                 }
             }
         });
@@ -285,7 +290,7 @@ public class WorkoutPlansController {
         try {
             SceneSwitcher.switchScene(event, "Dashboard.fxml", "FitTrack - Dashboard");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Dashboard: " + e.getMessage());
+            logger.error("✗ Error loading Dashboard", e);
         }
     }
 
@@ -297,7 +302,7 @@ public class WorkoutPlansController {
         try {
             SceneSwitcher.switchScene(event, "Goals.fxml", "FitTrack - Goals");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Goals: " + e.getMessage());
+            logger.error("✗ Error loading Goals", e);
         }
     }
 
@@ -309,7 +314,7 @@ public class WorkoutPlansController {
         try {
             SceneSwitcher.switchScene(event, "Progress.fxml", "FitTrack - Progress");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Progress: " + e.getMessage());
+            logger.error("✗ Error loading Progress", e);
         }
     }
 
@@ -321,7 +326,7 @@ public class WorkoutPlansController {
         try {
             SceneSwitcher.switchScene(event, "FoodLog.fxml", "FitTrack - Food Log");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Food Log: " + e.getMessage());
+            logger.error("✗ Error loading Food Log", e);
         }
     }
 
@@ -333,7 +338,7 @@ public class WorkoutPlansController {
         try {
             SceneSwitcher.switchScene(event, "Profile.fxml", "FitTrack - Profile");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Profile: " + e.getMessage());
+            logger.error("✗ Error loading Profile", e);
         }
     }
 
@@ -343,11 +348,11 @@ public class WorkoutPlansController {
     @FXML
     private void handleLogoutButtonAction(ActionEvent event) {
         SessionManager.getInstance().logout();
-        System.out.println("✓ User logged out");
+        logger.info("✓ User logged out");
         try {
             SceneSwitcher.switchScene(event, "Login.fxml", "FitTrack - Login");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Login: " + e.getMessage());
+            logger.error("✗ Error loading Login", e);
         }
     }
 
@@ -373,7 +378,7 @@ public class WorkoutPlansController {
         
         workoutLogTable.setItems(workoutLogList);
         
-        System.out.println("✓ Workout log table configured");
+        logger.info("✓ Workout log table configured");
     }
 
     /**
@@ -387,7 +392,7 @@ public class WorkoutPlansController {
         var logs = dbManager.getWorkoutLogs(currentUser.getUserId());
         workoutLogList.addAll(logs);
         
-        System.out.println("✓ Loaded " + logs.size() + " workout logs from database");
+        logger.info("✓ Loaded {} workout logs from database", logs.size());
     }
 
     /**
@@ -401,8 +406,8 @@ public class WorkoutPlansController {
         String weightStr = weightField.getText().trim();
         LocalDate date = datePicker.getValue();
 
-        System.out.println("ℹ Add Workout button clicked");
-        System.out.println("ℹ Workout name: " + workoutName);
+        logger.info("ℹ Add Workout button clicked");
+        logger.info("ℹ Workout name: {}", workoutName);
 
         // Validation
         if (workoutName.isEmpty()) {
@@ -466,7 +471,7 @@ public class WorkoutPlansController {
             return;
         }
 
-        System.out.println("ℹ Creating WorkoutLog object...");
+        logger.info("ℹ Creating WorkoutLog object...");
 
         // Create new workout log
         WorkoutLog newLog = new WorkoutLog();
@@ -477,13 +482,13 @@ public class WorkoutPlansController {
         newLog.setWeightUsed(weight);
         newLog.setDate(date);
 
-        System.out.println("ℹ Saving to database...");
+        logger.info("ℹ Saving to database...");
 
         // Save to database
         boolean success = dbManager.saveWorkoutLog(newLog);
 
         if (success) {
-            System.out.println("✓ Workout log saved to database with ID: " + newLog.getId());
+            logger.info("✓ Workout log saved to database with ID: {}", newLog.getId());
             
             // Add to UI list
             workoutLogList.add(newLog);
@@ -494,10 +499,10 @@ public class WorkoutPlansController {
             // Clear form
             handleClear();
             
-            System.out.println("✓ Workout log added to UI: " + workoutName);
+            logger.info("✓ Workout log added to UI: {}", workoutName);
         } else {
             showError("Failed to save workout log. Please try again.");
-            System.err.println("✗ Failed to save workout log to database");
+            logger.error("✗ Failed to save workout log to database");
         }
     }
 
@@ -525,10 +530,10 @@ public class WorkoutPlansController {
                 if (success) {
                     workoutLogList.remove(selectedLog);
                     showSuccess("Workout log deleted successfully!");
-                    System.out.println("✓ Workout log deleted from database with ID: " + selectedLog.getId());
+                    logger.info("✓ Workout log deleted from database with ID: {}", selectedLog.getId());
                 } else {
                     showError("Failed to delete workout log. Please try again.");
-                    System.err.println("✗ Failed to delete workout log from database");
+                    logger.error("✗ Failed to delete workout log from database");
                 }
             }
         });
@@ -545,7 +550,7 @@ public class WorkoutPlansController {
         weightField.clear();
         datePicker.setValue(null);
         messageLabel.setText("");
-        System.out.println("✓ Workout log form cleared");
+        logger.info("✓ Workout log form cleared");
     }
 
     // ==================== HELPER METHODS ====================
@@ -566,7 +571,7 @@ public class WorkoutPlansController {
     private void showError(String message) {
         messageLabel.setText(message);
         messageLabel.setStyle("-fx-text-fill: red;");
-        System.err.println("✗ " + message);
+        logger.error("✗ {}", message);
     }
 
     /**
@@ -575,6 +580,6 @@ public class WorkoutPlansController {
     private void showSuccess(String message) {
         messageLabel.setText(message);
         messageLabel.setStyle("-fx-text-fill: green;");
-        System.out.println("✓ " + message);
+        logger.info("✓ {}", message);
     }
 }

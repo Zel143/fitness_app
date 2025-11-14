@@ -2,11 +2,15 @@ package com.fittrack.util;
 
 import java.util.Stack;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Singleton class to manage command history for undo/redo operations
  * Maintains two stacks: one for undo, one for redo
  */
 public class CommandHistory {
+    private static final Logger logger = LoggerFactory.getLogger(CommandHistory.class);
     private static CommandHistory instance;
     private final Stack<Command> undoStack = new Stack<>();
     private final Stack<Command> redoStack = new Stack<>();
@@ -41,7 +45,7 @@ public class CommandHistory {
                 undoStack.remove(0);
             }
             
-            System.out.println("✓ Command executed: " + command.getDescription());
+            logger.info("✓ Command executed: {}", command.getDescription());
         }
         return success;
     }
@@ -53,7 +57,7 @@ public class CommandHistory {
      */
     public boolean undo() {
         if (undoStack.isEmpty()) {
-            System.out.println("⚠ Nothing to undo");
+            logger.info("⚠ Nothing to undo");
             return false;
         }
         
@@ -62,10 +66,10 @@ public class CommandHistory {
         
         if (success) {
             redoStack.push(command);
-            System.out.println("✓ Undone: " + command.getDescription());
+            logger.info("✓ Undone: {}", command.getDescription());
         } else {
             undoStack.push(command); // Put it back if undo failed
-            System.err.println("✗ Failed to undo: " + command.getDescription());
+            logger.error("✗ Failed to undo: {}", command.getDescription());
         }
         
         return success;
@@ -78,7 +82,7 @@ public class CommandHistory {
      */
     public boolean redo() {
         if (redoStack.isEmpty()) {
-            System.out.println("⚠ Nothing to redo");
+            logger.info("⚠ Nothing to redo");
             return false;
         }
         
@@ -87,10 +91,10 @@ public class CommandHistory {
         
         if (success) {
             undoStack.push(command);
-            System.out.println("✓ Redone: " + command.getDescription());
+            logger.info("✓ Redone: {}", command.getDescription());
         } else {
             redoStack.push(command); // Put it back if redo failed
-            System.err.println("✗ Failed to redo: " + command.getDescription());
+            logger.error("✗ Failed to redo: {}", command.getDescription());
         }
         
         return success;
@@ -118,7 +122,7 @@ public class CommandHistory {
     public void clear() {
         undoStack.clear();
         redoStack.clear();
-        System.out.println("ℹ Command history cleared");
+        logger.info("ℹ Command history cleared");
     }
     
     /**

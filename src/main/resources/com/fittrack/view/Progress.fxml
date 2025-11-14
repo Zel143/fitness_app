@@ -27,7 +27,7 @@
                 <Button text="🏠 Dashboard" styleClass="sidebar-button" onAction="#handleDashboardButtonAction"/>
                 <Button text="🎯 Goals" styleClass="sidebar-button" onAction="#handleGoalsButtonAction"/>
                 <Button text="📅 Workouts" styleClass="sidebar-button" onAction="#handleWorkoutsButtonAction"/>
-                <Button text="📈 Progress" styleClass="sidebar-button" style="-fx-background-color: #1976D2;"/>
+                <Button text="📈 Progress" styleClass="sidebar-button" style="-fx-background-color: #1976D2;" disabled="true"/>
                 <Button text="🍎 Food Log" styleClass="sidebar-button" onAction="#handleFoodLogButtonAction"/>
                 <Button text="👤 Profile" styleClass="sidebar-button" onAction="#handleProfileButtonAction"/>
             </VBox>
@@ -47,7 +47,7 @@
                 </padding>
 
                 <!-- Title -->
-                <Label text="Track Your Progress">
+                <Label fx:id="welcomeLabel" text="Track Your Progress">
                     <font>
                         <Font name="System Bold" size="24.0" />
                     </font>

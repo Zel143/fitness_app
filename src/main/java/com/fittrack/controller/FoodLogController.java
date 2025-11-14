@@ -3,6 +3,9 @@ package com.fittrack.controller;
 import java.io.IOException;
 import java.time.LocalDate;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.FoodLog;
 import com.fittrack.model.User;
@@ -28,6 +31,8 @@ import javafx.scene.layout.Region; // <-- 1. IMPORT ADDED
  * Tracks daily food intake and calculates nutrition totals
  */
 public class FoodLogController {
+
+    private static final Logger logger = LoggerFactory.getLogger(FoodLogController.class);
 
     @FXML private Label welcomeLabel;
     @FXML private Label userLabel;
@@ -62,13 +67,13 @@ public class FoodLogController {
         if (currentUser != null) {
             welcomeLabel.setText(currentUser.getUsername() + "'s Food Log");
             userLabel.setText("Welcome, " + currentUser.getUsername() + "!");
-            System.out.println("✓ FoodLog screen loaded for: " + currentUser.getUsername());
+            logger.info("✓ FoodLog screen loaded for: {}", currentUser.getUsername());
             setupTableColumns();
             loadFoodLog();
             updateDailyTotals();
         } else {
             welcomeLabel.setText("Food Log");
-            System.out.println("⚠ Warning: No user logged in");
+            logger.warn("⚠ Warning: No user logged in");
         }
 
         datePicker.setValue(LocalDate.now());
@@ -103,7 +108,7 @@ public class FoodLogController {
         var logs = dbManager.getFoodLog(currentUser.getUserId(), null);
         foodLogList.addAll(logs);
 
-        System.out.println("✓ Loaded " + logs.size() + " food log entries from database");
+        logger.info("✓ Loaded {} food log entries from database", logs.size());
     }
 
     private void updateDailyTotals() {
@@ -137,7 +142,7 @@ public class FoodLogController {
         // Force the label to wrap text and update its layout
         dailyTotalsLabel.setWrapText(true);
         
-        System.out.println("✓ Updated totals: " + totalsText.replace("\n", " | "));
+        logger.info("✓ Updated totals: {}", totalsText.replace("\n", " | "));
     }
 
     @FXML
@@ -238,7 +243,7 @@ public class FoodLogController {
         try {
             SceneSwitcher.switchScene(event, "Dashboard.fxml", "FitTrack - Dashboard");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Dashboard: " + e.getMessage());
+            logger.error("✗ Error loading Dashboard", e);
         }
     }
 
@@ -250,7 +255,7 @@ public class FoodLogController {
         try {
             SceneSwitcher.switchScene(event, "Goals.fxml", "FitTrack - Goals");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Goals: " + e.getMessage());
+            logger.error("✗ Error loading Goals", e);
         }
     }
 
@@ -262,7 +267,7 @@ public class FoodLogController {
         try {
             SceneSwitcher.switchScene(event, "WorkoutPlans.fxml", "FitTrack - Workouts");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Workouts: " + e.getMessage());
+            logger.error("✗ Error loading Workouts", e);
         }
     }
 
@@ -274,7 +279,7 @@ public class FoodLogController {
         try {
             SceneSwitcher.switchScene(event, "Progress.fxml", "FitTrack - Progress");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Progress: " + e.getMessage());
+            logger.error("✗ Error loading Progress", e);
         }
     }
 
@@ -286,7 +291,7 @@ public class FoodLogController {
         try {
             SceneSwitcher.switchScene(event, "Profile.fxml", "FitTrack - Profile");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Profile: " + e.getMessage());
+            logger.error("✗ Error loading Profile", e);
         }
     }
 
@@ -296,11 +301,11 @@ public class FoodLogController {
     @FXML
     private void handleLogoutButtonAction(ActionEvent event) {
         SessionManager.getInstance().logout();
-        System.out.println("✓ User logged out");
+        logger.info("✓ User logged out");
         try {
             SceneSwitcher.switchScene(event, "Login.fxml", "FitTrack - Login");
         } catch (IOException e) {
-            System.err.println("✗ Error loading Login: " + e.getMessage());
+            logger.error("✗ Error loading Login", e);
         }
     }
 

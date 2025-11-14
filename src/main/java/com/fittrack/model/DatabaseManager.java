@@ -9,8 +9,12 @@ import java.sql.Statement;
 import java.time.LocalDate;
 
 import org.mindrot.jbcrypt.BCrypt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DatabaseManager {
+
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
 
     // SQLite database file in the project folder
     private static final String DB_FILE = "fittrack.db";
@@ -21,8 +25,7 @@ public class DatabaseManager {
         try {
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
-            System.err.println("SQLite JDBC driver not found!");
-            e.printStackTrace();
+            logger.error("SQLite JDBC driver not found!", e);
         }
     }
     
@@ -34,10 +37,10 @@ public class DatabaseManager {
         try {
             // Connect to SQLite database in project folder
             Connection conn = DriverManager.getConnection(DB_URL);
-            System.out.println("✓ Database connected: " + DB_FILE);
+            logger.info("✓ Database connected: {}", DB_FILE);
             return conn;
         } catch (SQLException e) {
-            System.err.println("✗ Database connection failed: " + e.getMessage());
+            logger.error("✗ Database connection failed: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -163,13 +166,13 @@ public class DatabaseManager {
         };
 
         try (Connection conn = connect(); Statement stmt = conn.createStatement()) {
-            System.out.println("✓ Checking and creating tables...");
+            logger.info("✓ Checking and creating tables...");
             for (String sql : tablesSQL) {
                 stmt.execute(sql);
             }
-            System.out.println("✓ All tables are ready!");
+            logger.info("✓ All tables are ready!");
         } catch (SQLException e) {
-            System.err.println("✗ Error creating tables: " + e.getMessage());
+            logger.error("✗ Error creating tables: {}", e.getMessage(), e);
         }
     }
 
@@ -180,21 +183,16 @@ public class DatabaseManager {
         String sql = "INSERT INTO users(username, email, password_hash) VALUES(?,?,?)";
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
 
-        System.out.println("DEBUG: Registering user: " + user.username);
-        System.out.println("DEBUG: Email: " + user.email);
-        System.out.println("DEBUG: Password hash: " + hashedPassword.substring(0, 20) + "...");
-
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, user.username);
             pstmt.setString(2, user.email);
             pstmt.setString(3, hashedPassword);
             pstmt.executeUpdate();
-            System.out.println("✓ User registered: " + user.username);
+            logger.info("✓ User registered: {}", user.username);
             return true;
         } catch (SQLException e) {
-            System.err.println("✗ Registration error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Registration error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -213,9 +211,6 @@ public class DatabaseManager {
 
             if (rs.next()) {
                 String storedHash = rs.getString("password_hash");
-                System.out.println("DEBUG: Found user: " + username);
-                System.out.println("DEBUG: Stored hash: " + storedHash.substring(0, 20) + "...");
-                System.out.println("DEBUG: Checking password...");
                 
                 // BCrypt.checkpw() is ALWAYS case-sensitive
                 if (BCrypt.checkpw(password, storedHash)) {
@@ -239,18 +234,18 @@ public class DatabaseManager {
                     
                     user.fitnessLevel = rs.getString("fitness_level");
                     
-                    System.out.println("✓ Login successful: " + username);
+                    logger.info("✓ Login successful: {}", username);
                     return user;
                 } else {
-                    System.out.println("✗ Password verification failed for user: " + username);
+                    logger.warn("✗ Password verification failed for user: {}", username);
                 }
             } else {
-                System.out.println("✗ User not found: " + username);
+                logger.warn("✗ User not found: {}", username);
             }
         } catch (SQLException e) {
-            System.err.println("✗ Login error: " + e.getMessage());
+            logger.error("✗ Login error: {}", e.getMessage(), e);
         }
-        System.out.println("✗ Login failed: Invalid credentials");
+        logger.warn("✗ Login failed: Invalid credentials");
         return null;
     }
 
@@ -288,11 +283,11 @@ public class DatabaseManager {
                 
                 user.fitnessLevel = rs.getString("fitness_level");
                 
-                System.out.println("✓ User data refreshed for ID: " + userId);
+                logger.info("✓ User data refreshed for ID: {}", userId);
                 return user;
             }
         } catch (SQLException e) {
-            System.err.println("✗ Error fetching user by ID: " + e.getMessage());
+            logger.error("✗ Error fetching user by ID: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -304,11 +299,6 @@ public class DatabaseManager {
         String sql = "UPDATE users "
             + "SET age = ?, gender = ?, height = ?, weight = ?, fitness_level = ? "
             + "WHERE user_id = ?";
-
-        System.out.println("DEBUG: Updating profile for user ID: " + user.userId);
-        System.out.println("DEBUG: Age=" + user.age + ", Gender=" + user.gender + 
-                         ", Height=" + user.height + ", Weight=" + user.weight + 
-                         ", FitnessLevel=" + user.fitnessLevel);
 
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -338,11 +328,10 @@ public class DatabaseManager {
             pstmt.setInt(6, user.userId);
             
             int rowsAffected = pstmt.executeUpdate();
-            System.out.println("✓ Profile updated for user: " + user.username + " (rows affected: " + rowsAffected + ")");
+            logger.info("✓ Profile updated for user: {} (rows affected: {})", user.username, rowsAffected);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Update profile error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Update profile error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -353,10 +342,6 @@ public class DatabaseManager {
     public boolean saveGoal(Goal goal) {
         String sql = "INSERT INTO goals(user_id, goal_type, target_value, target_unit, target_date, status) "
             + "VALUES(?, ?, ?, ?, ?, ?)";
-
-        System.out.println("DEBUG: Saving goal for user ID: " + goal.userId);
-        System.out.println("DEBUG: Type=" + goal.goalType + ", Value=" + goal.targetValue + 
-                         ", Unit=" + goal.targetUnit + ", Date=" + goal.targetDate + ", Status=" + goal.status);
 
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -392,11 +377,10 @@ public class DatabaseManager {
                 }
             }
             
-            System.out.println("✓ Goal saved for user ID: " + goal.userId + " with goal ID: " + goal.goalId);
+            logger.info("✓ Goal saved for user ID: {} with goal ID: {}", goal.userId, goal.goalId);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Save goal error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Save goal error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -431,10 +415,9 @@ public class DatabaseManager {
                 
                 goals.add(goal);
             }
-            System.out.println("✓ Retrieved " + goals.size() + " goals for user ID: " + userId);
+            logger.info("✓ Retrieved {} goals for user ID: {}", goals.size(), userId);
         } catch (SQLException e) {
-            System.err.println("✗ Get goals error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Get goals error: {}", e.getMessage(), e);
         }
         return goals;
     }
@@ -469,10 +452,9 @@ public class DatabaseManager {
                 log.setDate(rs.getObject("date", LocalDate.class));
                 logs.add(log);
             }
-            System.out.println("✓ Retrieved " + logs.size() + " workout logs for user ID: " + userId);
+            logger.info("✓ Retrieved {} workout logs for user ID: {}", logs.size(), userId);
         } catch (SQLException e) {
-            System.err.println("✗ Get workout logs error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Get workout logs error: {}", e.getMessage(), e);
         }
         return logs;
     }
@@ -499,10 +481,9 @@ public class DatabaseManager {
                 plan.durationWeeks = rs.getInt("duration_weeks");
                 plans.add(plan);
             }
-            System.out.println("✓ Retrieved " + plans.size() + " workout plans for user ID: " + userId);
+            logger.info("✓ Retrieved {} workout plans for user ID: {}", plans.size(), userId);
         } catch (SQLException e) {
-            System.err.println("✗ Get workout plans error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Get workout plans error: {}", e.getMessage(), e);
         }
         return plans;
     }
@@ -534,11 +515,10 @@ public class DatabaseManager {
                 }
             }
             
-            System.out.println("✓ Workout plan saved with ID: " + plan.planId);
+            logger.info("✓ Workout plan saved with ID: {}", plan.planId);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Save workout plan error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Save workout plan error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -554,11 +534,10 @@ public class DatabaseManager {
             pstmt.setInt(1, planId);
             
             int rowsAffected = pstmt.executeUpdate();
-            System.out.println("✓ Workout plan deleted with ID: " + planId);
+            logger.info("✓ Workout plan deleted with ID: {}", planId);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Delete workout plan error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Delete workout plan error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -584,10 +563,9 @@ public class DatabaseManager {
                 );
                 history.add(entry);
             }
-            System.out.println("✓ Retrieved " + history.size() + " weight entries for user ID: " + userId);
+            logger.info("✓ Retrieved {} weight entries for user ID: {}", history.size(), userId);
         } catch (SQLException e) {
-            System.err.println("✗ Get weight history error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Get weight history error: {}", e.getMessage(), e);
         }
         return history;
     }
@@ -616,11 +594,10 @@ public class DatabaseManager {
                 }
             }
             
-            System.out.println("✓ Weight history saved with ID: " + entry.getId());
+            logger.info("✓ Weight history saved with ID: {}", entry.getId());
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Save weight history error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Save weight history error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -636,11 +613,10 @@ public class DatabaseManager {
             pstmt.setInt(1, historyId);
             
             int rowsAffected = pstmt.executeUpdate();
-            System.out.println("✓ Weight history deleted with ID: " + historyId);
+            logger.info("✓ Weight history deleted with ID: {}", historyId);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Delete weight history error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Delete weight history error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -676,10 +652,9 @@ public class DatabaseManager {
                 );
                 logs.add(log);
             }
-            System.out.println("✓ Retrieved " + logs.size() + " food log entries");
+            logger.info("✓ Retrieved {} food log entries", logs.size());
         } catch (SQLException e) {
-            System.err.println("✗ Get food log error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Get food log error: {}", e.getMessage(), e);
         }
         return logs;
     }
@@ -713,11 +688,10 @@ public class DatabaseManager {
                 }
             }
             
-            System.out.println("✓ Food log saved with ID: " + log.getId());
+            logger.info("✓ Food log saved with ID: {}", log.getId());
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Save food log error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Save food log error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -733,11 +707,10 @@ public class DatabaseManager {
             pstmt.setInt(1, foodLogId);
             
             int rowsAffected = pstmt.executeUpdate();
-            System.out.println("✓ Food log deleted with ID: " + foodLogId);
+            logger.info("✓ Food log deleted with ID: {}", foodLogId);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Delete food log error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Delete food log error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -774,11 +747,10 @@ public class DatabaseManager {
                 }
             }
             
-            System.out.println("✓ Workout log saved with ID: " + log.getId());
+            logger.info("✓ Workout log saved with ID: {}", log.getId());
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Save workout log error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Save workout log error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -804,10 +776,10 @@ public class DatabaseManager {
             
             if (!hasWorkoutName) {
                 stmt.executeUpdate(alterTableSql);
-                System.out.println("✓ Added workout_name column to workout_log table");
+                logger.info("✓ Added workout_name column to workout_log table");
             }
         } catch (SQLException e) {
-            System.err.println("✗ Error ensuring workout_name column: " + e.getMessage());
+            logger.error("✗ Error ensuring workout_name column: {}", e.getMessage(), e);
         }
     }
 
@@ -822,11 +794,10 @@ public class DatabaseManager {
             pstmt.setInt(1, goalId);
             
             int rowsAffected = pstmt.executeUpdate();
-            System.out.println("✓ Goal deleted with ID: " + goalId);
+            logger.info("✓ Goal deleted with ID: {}", goalId);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Delete goal error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Delete goal error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -842,11 +813,10 @@ public class DatabaseManager {
             pstmt.setInt(1, workoutId);
             
             int rowsAffected = pstmt.executeUpdate();
-            System.out.println("✓ Workout log deleted with ID: " + workoutId);
+            logger.info("✓ Workout log deleted with ID: {}", workoutId);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Delete workout log error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Delete workout log error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -857,11 +827,11 @@ public class DatabaseManager {
     public boolean testConnection() {
         try (Connection conn = connect()) {
             if (conn != null && !conn.isClosed()) {
-                System.out.println("✓ Database connection test: SUCCESS");
+                logger.info("✓ Database connection test: SUCCESS");
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("✗ Database connection test FAILED: " + e.getMessage());
+            logger.error("✗ Database connection test FAILED: {}", e.getMessage(), e);
         }
         return false;
     }
