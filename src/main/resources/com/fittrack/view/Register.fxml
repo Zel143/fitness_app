@@ -1,65 +1,86 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" spacing="15.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fittrack.controller.RegisterController">
-   <padding>
-      <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
-   </padding>
-   
-   <!-- Title -->
-   <Label text="Create Account">
-      <font>
-         <Font name="System Bold" size="28.0" />
-      </font>
-   </Label>
-   
-   <!-- Username Field -->
-   <VBox spacing="5.0">
-      <Label text="Username:" />
-      <TextField fx:id="usernameField" promptText="Choose a username" />
-   </VBox>
-   
-   <!-- Email Field -->
-   <VBox spacing="5.0">
-      <Label text="Email:" />
-      <TextField fx:id="emailField" promptText="Enter your email" />
-   </VBox>
-   
-   <!-- Password Field -->
-   <VBox spacing="5.0">
-      <Label text="Password:" />
-      <PasswordField fx:id="passwordField" promptText="Min. 6 characters" />
-   </VBox>
-   
-   <!-- Confirm Password Field -->
-   <VBox spacing="5.0">
-      <Label text="Confirm Password:" />
-      <PasswordField fx:id="confirmPasswordField" promptText="Re-enter password" onAction="#handleRegisterButtonAction" />
-   </VBox>
-   
-   <!-- Message Label -->
-   <Label fx:id="messageLabel" />
-   
-   <!-- Register Button -->
-   <Button fx:id="registerButton" text="Create Account" onAction="#handleRegisterButtonAction" prefWidth="200.0" defaultButton="true">
-      <font>
-         <Font size="14.0" />
-      </font>
-   </Button>
-   
-   <!-- Login Link -->
-   <HBox alignment="CENTER" spacing="5.0">
-      <Label text="Already have an account?" />
-      <Button text="Login here" onAction="#handleLoginLinkAction" 
-              style="-fx-background-color: transparent; -fx-text-fill: #0066CC; -fx-underline: true; -fx-cursor: hand;" 
-              styleClass="link-button" />
-   </HBox>
-</VBox>
+<StackPane xmlns="http://javafx.com/javafx/17"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.fittrack.controller.RegisterController"
+           stylesheets="@styleSheet.css"
+           styleClass="login-root">
+
+    <!-- Main Card -->
+    <VBox alignment="CENTER"
+          spacing="20"
+          styleClass="login-card"
+          prefWidth="400"
+          prefHeight="550"
+          maxWidth="400"
+          maxHeight="550"
+          minWidth="400"
+          minHeight="550">
+
+        <padding>
+            <Insets top="40" right="40" bottom="40" left="40"/>
+        </padding>
+
+        
+        <ImageView fx:id="logoImage"
+                   fitHeight="70"
+                   fitWidth="70"
+                   preserveRatio="true"
+                   styleClass="login-logo"/>
+
+        <!-- Title -->
+        <Label text="Create Account" styleClass="login-title"/>
+        <Label text="Fill in the details to continue" styleClass="login-subtitle"/>
+
+        <!-- Input Fields -->
+        <VBox spacing="10" styleClass="input-container">
+
+            <TextField fx:id="usernameField"
+                       promptText="Username"
+                       styleClass="input-field"/>
+
+            <TextField fx:id="emailField"
+                       promptText="Email"
+                       styleClass="input-field"/>
+
+            <PasswordField fx:id="passwordField"
+                           promptText="Password"
+                           styleClass="input-field"/>
+
+            <PasswordField fx:id="confirmPasswordField"
+                           promptText="Confirm Password"
+                           onAction="#handleRegisterButtonAction"
+                           styleClass="input-field"/>
+
+        </VBox>
+
+        <!-- Message / Error Label -->
+        <Label fx:id="messageLabel"
+               text=""
+               styleClass="error-label"
+               visible="true"/>
+
+        <!-- Register Button -->
+        <Button fx:id="registerButton"
+                text="Create Account"
+                onAction="#handleRegisterButtonAction"
+                styleClass="login-button"
+                prefWidth="240"
+                defaultButton="true"/>
+
+        <!-- Login link -->
+        <HBox alignment="CENTER" spacing="5">
+            <Label text="Already have an account?" styleClass="register-label"/>
+            <Button text="Login here"
+                    onAction="#handleLoginLinkAction"
+                    styleClass="register-link"/>
+        </HBox>
+
+    </VBox>
+
+</StackPane>
