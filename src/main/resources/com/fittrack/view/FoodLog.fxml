@@ -8,129 +8,147 @@
 <BorderPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.fittrack.controller.FoodLogController"
-            prefWidth="1200.0" prefHeight="700.0"
-            stylesheets="@/com/fittrack/view/styleSheet.css"
-            >
+            prefWidth="1366.0" prefHeight="768.0"
+            stylesheets="@/com/fittrack/view/styleSheet.css">
 
-    <!-- === SIDEBAR === -->
-    <left>
-        <VBox prefWidth="220.0" spacing="20.0"
-              alignment="TOP_LEFT"
-              styleClass="sidebar">
+    <!-- === RESPONSIVE TOPBAR === -->
+    <top>
+        <HBox spacing="15.0" alignment="CENTER_LEFT"
+              styleClass="topbar"
+              style="-fx-background-color: #0D47A1; -fx-padding: 10 20;" minHeight="60">
 
-            <Label fx:id="userLabel" text="Welcome, User!" styleClass="sidebar-user">
-                <font><Font name="System Bold" size="18"/></font>
+            <!-- User greeting -->
+            <Label fx:id="userLabel" text="Welcome, daph!" textFill="WHITE" minWidth="150" maxWidth="200">
+                <font>
+                    <Font name="System Bold" size="18.0"/>
+                </font>
             </Label>
 
-            <Separator style="-fx-background-color: white;"/>
+            <Separator orientation="VERTICAL" style="-fx-background-color: white; -fx-pref-height: 40;"/>
 
-            <VBox spacing="10.0" alignment="TOP_LEFT">
-                <Button text="🏠 Dashboard" styleClass="sidebar-button" onAction="#handleDashboardButtonAction"/>
-                <Button text="🎯 Goals" styleClass="sidebar-button" onAction="#handleGoalsButtonAction"/>
-                <Button text="📅 Workouts" styleClass="sidebar-button" onAction="#handleWorkoutsButtonAction"/>
-                <Button text="📈 Progress" styleClass="sidebar-button" onAction="#handleProgressButtonAction"/>
-                <Button text="🍎 Food Log" styleClass="sidebar-button" style="-fx-background-color: #1976D2;"/>
-                <Button text="👤 Profile" styleClass="sidebar-button" onAction="#handleProfileButtonAction"/>
-            </VBox>
+            <!-- Navigation Buttons -->
+            <HBox spacing="10.0" alignment="CENTER_LEFT" HBox.hgrow="SOMETIMES">
+                <Button text="🏠 Dashboard" onAction="#handleDashboardButtonAction" styleClass="sidebar-button"/>
+                <Button text="👤 My Profile" onAction="#handleProfileButtonAction" styleClass="sidebar-button"/>
+                <Button text="🎯 My Goals" onAction="#handleGoalsButtonAction" styleClass="sidebar-button"/>
+                <Button text="📅 Schedule" onAction="#handleWorkoutsButtonAction" styleClass="sidebar-button"/>
+                <Button text="📈 Progress" onAction="#handleProgressButtonAction" styleClass="sidebar-button"/>
+                <Button text="🍎 Food Log" styleClass="sidebar-button" style="-fx-background-color: rgba(255,255,255,0.2);"/>
+            </HBox>
 
-            <Pane VBox.vgrow="ALWAYS"/>
+            <Pane HBox.hgrow="ALWAYS"/>
 
-            <Button text="🚪 Logout" styleClass="logout-button" onAction="#handleLogoutButtonAction"/>
-        </VBox>
-    </left>
+            <!-- Logout button on far right -->
+            <Button text="🚪 Logout" onAction="#handleLogoutButtonAction" styleClass="logout-button" minWidth="100">
+                <HBox.margin>
+                    <Insets right="15"/>
+                </HBox.margin>
+            </Button>
+        </HBox>
+    </top>
 
     <!-- === MAIN CONTENT AREA === -->
     <center>
-        <ScrollPane fitToWidth="true">
-            <content>
-                <VBox spacing="25.0" minHeight="700.0" alignment="TOP_CENTER" style="-fx-padding: 40;" styleClass="foodlog-container">
-                    
-                    <!-- Page Title -->
-                    <Label fx:id="welcomeLabel" text="Food Log" styleClass="foodlog-title" />
+        <ScrollPane fitToWidth="true" fitToHeight="true"
+                    hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                    style="-fx-background-color: transparent;">
+            <VBox alignment="TOP_CENTER" spacing="25.0" styleClass="dashboard-container">
+                <padding>
+                    <Insets top="20" left="40" right="40" bottom="40"/>
+                </padding>
 
-                    <!-- Centered Green Summary Card -->
-                    <HBox alignment="CENTER">
-                        <VBox spacing="10.0" alignment="CENTER"
-                              styleClass="daily-summary-card">
-                            <Label fx:id="dailyTotalsLabel"
-                                   text="Daily Totals: Calories: 0 kcal | Protein: 0g | Carbs: 0g | Fats: 0g"
-                                   wrapText="true"
-                                   styleClass="daily-summary-text"/>
-                        </VBox>
-                    </HBox>
+                <!-- Page Title -->
+                <Label fx:id="welcomeLabel" text="daph's Food Log" styleClass="title"/>
+                
+                <Separator prefWidth="800" style="-fx-border-color: #2C3E50; -fx-border-width: 0 0 2 0;"/>
 
-                    <!-- Food Log Table -->
-                    <VBox spacing="10.0" styleClass="log-card">
-                        <Label text="Food Log Entries" styleClass="section-title"/>
-                        <TableView fx:id="foodLogTable" prefHeight="200.0" styleClass="food-table">
-                            <columns>
-                                <TableColumn fx:id="foodNameColumn" text="Food" prefWidth="180.0" />
-                                <TableColumn fx:id="caloriesColumn" text="Calories" prefWidth="100.0" />
-                                <TableColumn fx:id="proteinColumn" text="Protein (g)" prefWidth="100.0" />
-                                <TableColumn fx:id="carbsColumn" text="Carbs (g)" prefWidth="100.0" />
-                                <TableColumn fx:id="fatsColumn" text="Fats (g)" prefWidth="100.0" />
-                                <TableColumn fx:id="dateColumn" text="Date" prefWidth="120.0" />
-                            </columns>
-                        </TableView>
-                    </VBox>
-
-                    <!-- Log New Food Section -->
-                    <VBox spacing="15.0" styleClass="log-card">
-                        <Label text="Log New Food" styleClass="section-title"/>
-
-                        <GridPane hgap="20.0" vgap="15.0">
-                            <columnConstraints>
-                                <ColumnConstraints percentWidth="50.0"/>
-                                <ColumnConstraints percentWidth="50.0"/>
-                            </columnConstraints>
-
-                            <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                                <Label text="Food Name:"/>
-                                <TextField fx:id="foodNameField" promptText="e.g., Chicken Breast"/>
-                            </VBox>
-
-                            <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                                <Label text="Calories (kcal):"/>
-                                <TextField fx:id="caloriesField" promptText="e.g., 250"/>
-                            </VBox>
-
-                            <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
-                                <Label text="Protein (g):"/>
-                                <TextField fx:id="proteinField" promptText="e.g., 30.5"/>
-                            </VBox>
-
-                            <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                                <Label text="Carbs (g):"/>
-                                <TextField fx:id="carbsField" promptText="e.g., 15.0"/>
-                            </VBox>
-
-                            <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
-                                <Label text="Fats (g):"/>
-                                <TextField fx:id="fatsField" promptText="e.g., 5.0"/>
-                            </VBox>
-
-                            <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                                <Label text="Date:"/>
-                                <DatePicker fx:id="datePicker" prefWidth="200.0"/>
-                            </VBox>
-                        </GridPane>
-
-                        <Label fx:id="messageLabel" styleClass="success-label"/>
-
-                        <HBox spacing="15.0" alignment="CENTER_LEFT">
-                            <Button text="Log Food" onAction="#handleAddFoodButtonAction" styleClass="log-button"/>
-                            <Button text="View Date Totals" onAction="#handleViewDateButtonAction" styleClass="view-button"/>
-                        </HBox>
-                    </VBox>
-
-                    <!-- Action Buttons -->
-                    <HBox spacing="15.0" alignment="CENTER">
-                        <Button text="Delete Selected Entry" onAction="#handleDeleteFoodButtonAction" styleClass="delete-button"/>
-                        <Button text="Back to Dashboard" onAction="#handleBackButtonAction" styleClass="view-button"/>
-                    </HBox>
-
+                <!-- Centered Summary Card -->
+                <VBox spacing="10.0" alignment="CENTER" maxWidth="700"
+                      style="-fx-background-color: #1976D2; -fx-padding: 25; -fx-border-radius: 15; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 10, 0, 0, 4);">
+                    <Label fx:id="dailyTotalsLabel"
+                           text="Daily Totals for 2025-11-14:&#10;Calories: 0 kcal&#10;Protein: 0.0 g | Carbs: 0.0 g | Fats: 0.0 g"
+                           wrapText="true"
+                           textAlignment="CENTER"
+                           style="-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-alignment: center;"/>
                 </VBox>
-            </content>
+
+                <!-- Food Log Table -->
+                <VBox spacing="15.0" styleClass="log-card" prefWidth="900" maxWidth="900">
+                    <Label text="Food Log Entries" styleClass="section-title"/>
+                    <TableView fx:id="foodLogTable" prefHeight="300.0" minHeight="200.0" styleClass="food-table">
+                        <columnResizePolicy>
+                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                        </columnResizePolicy>
+                        <columns>
+                            <TableColumn fx:id="foodNameColumn" text="Food" minWidth="150" />
+                            <TableColumn fx:id="caloriesColumn" text="Calories" minWidth="80" />
+                            <TableColumn fx:id="proteinColumn" text="Protein (g)" minWidth="100" />
+                            <TableColumn fx:id="carbsColumn" text="Carbs (g)" minWidth="100" />
+                            <TableColumn fx:id="fatsColumn" text="Fats (g)" minWidth="80" />
+                            <TableColumn fx:id="dateColumn" text="Date" minWidth="120" />
+                        </columns>
+                        <placeholder>
+                            <Label text="No content in table" style="-fx-text-fill: #9E9E9E;"/>
+                        </placeholder>
+                    </TableView>
+                </VBox>
+
+                <!-- Log New Food Section -->
+                <VBox spacing="20.0" styleClass="log-card" prefWidth="900" maxWidth="900">
+                    <Label text="Log New Food" styleClass="section-title"/>
+
+                    <GridPane hgap="30.0" vgap="15.0">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="50.0"/>
+                            <ColumnConstraints percentWidth="50.0"/>
+                        </columnConstraints>
+
+                        <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <Label text="Food Name:" styleClass="profile-label"/>
+                            <TextField fx:id="foodNameField" promptText="e.g., Chicken Breast" styleClass="profile-input"/>
+                        </VBox>
+
+                        <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <Label text="Calories (kcal):" styleClass="profile-label"/>
+                            <TextField fx:id="caloriesField" promptText="e.g., 250" styleClass="profile-input"/>
+                        </VBox>
+
+                        <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                            <Label text="Protein (g):" styleClass="profile-label"/>
+                            <TextField fx:id="proteinField" promptText="e.g., 30.5" styleClass="profile-input"/>
+                        </VBox>
+
+                        <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <Label text="Carbs (g):" styleClass="profile-label"/>
+                            <TextField fx:id="carbsField" promptText="e.g., 15.0" styleClass="profile-input"/>
+                        </VBox>
+
+                        <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                            <Label text="Fats (g):" styleClass="profile-label"/>
+                            <TextField fx:id="fatsField" promptText="e.g., 5.0" styleClass="profile-input"/>
+                        </VBox>
+
+                        <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                            <Label text="Date:" styleClass="profile-label"/>
+                            <DatePicker fx:id="datePicker" prefWidth="200.0" styleClass="profile-input"/>
+                        </VBox>
+                    </GridPane>
+
+                    <Label fx:id="messageLabel" styleClass="success-label"/>
+
+                    <HBox spacing="15.0" alignment="CENTER_LEFT">
+                        <Button text="Log Food" onAction="#handleAddFoodButtonAction" styleClass="log-button"/>
+                        <Button text="View Date Totals" onAction="#handleViewDateButtonAction" styleClass="view-button"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Action Buttons -->
+                <HBox spacing="15.0" alignment="CENTER">
+                    <Button text="Delete Selected Entry" onAction="#handleDeleteFoodButtonAction" styleClass="delete-button"/>
+                    <Button text="Back to Dashboard" onAction="#handleBackButtonAction" styleClass="view-button"/>
+                </HBox>
+
+            </VBox>
         </ScrollPane>
     </center>
 </BorderPane>
