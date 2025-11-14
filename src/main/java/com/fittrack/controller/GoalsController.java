@@ -3,6 +3,9 @@ package com.fittrack.controller;
 import java.io.IOException;
 import java.time.LocalDate;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.Goal;
 import com.fittrack.model.User;
@@ -29,7 +32,10 @@ import javafx.scene.control.cell.PropertyValueFactory;
  */
 public class GoalsController {
 
+    private static final Logger logger = LoggerFactory.getLogger(GoalsController.class);
+
     @FXML private Label welcomeLabel;
+    @FXML private Label userLabel;
     @FXML private TableView<Goal> goalsTable;
     @FXML private TableColumn<Goal, String> goalTypeColumn;
     @FXML private TableColumn<Goal, Double> targetValueColumn;
@@ -62,12 +68,13 @@ public class GoalsController {
 
         if (currentUser != null) {
             welcomeLabel.setText(currentUser.getUsername() + "'s Fitness Goals");
+            userLabel.setText("Welcome, " + currentUser.getUsername() + "!");
             setupTableColumns();
             setupComboBoxes();
             loadGoals();
         } else {
             welcomeLabel.setText("Goals");
-            System.out.println("⚠ Warning: No user logged in");
+            logger.warn("⚠ Warning: No user logged in");
         }
     }
 
@@ -166,16 +173,17 @@ public class GoalsController {
         goal.targetDate = targetDate;
         goal.status = "active";
 
-        System.out.println("ℹ Attempting to save goal for user: " + currentUser.getUserId());
-        System.out.println("ℹ Goal details: " + goalType + ", " + targetValue + " " + targetUnit);
-
         if (dbManager.saveGoal(goal)) {
-            System.out.println("✓ Goal saved with ID: " + goal.goalId);
-            showSuccess("Goal added successfully!");
-            clearForm();
+            logger.info("✓ Goal saved to database with ID: {}", goal.goalId);
+            
+            // Reload from database to get correct goal with ID
             loadGoals();
+            
+            // Clear form and show success
+            clearForm();
+            showSuccess("Goal added successfully!");
         } else {
-            System.err.println("✗ Failed to save goal to database");
+            logger.error("✗ Failed to save goal to database");
             showError("Failed to add goal. Please try again.");
         }
     }
@@ -199,19 +207,96 @@ public class GoalsController {
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                // ✅ FIX: Delete from database first
+                // Delete from database
                 boolean success = dbManager.deleteGoal(selectedGoal.goalId);
                 
                 if (success) {
-                    goalsList.remove(selectedGoal);
+                    logger.info("✓ Goal deleted from database with ID: {}", selectedGoal.goalId);
+                    
+                    // Reload from database to ensure data is current
+                    loadGoals();
+                    
                     showSuccess("Goal deleted successfully!");
-                    System.out.println("✓ Goal deleted from database with ID: " + selectedGoal.goalId);
                 } else {
                     showError("Failed to delete goal. Please try again.");
-                    System.err.println("✗ Failed to delete goal from database");
+                    logger.error("✗ Failed to delete goal from database");
                 }
             }
         });
+    }
+
+    /**
+     * Handle Dashboard button click
+     */
+    @FXML
+    private void handleDashboardButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Dashboard.fxml", "FitTrack - Dashboard");
+        } catch (IOException e) {
+            logger.error("✗ Error loading Dashboard", e);
+        }
+    }
+
+    /**
+     * Handle Workouts button click
+     */
+    @FXML
+    private void handleWorkoutsButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "WorkoutPlans.fxml", "FitTrack - Workouts");
+        } catch (IOException e) {
+            logger.error("✗ Error loading Workouts", e);
+        }
+    }
+
+    /**
+     * Handle Progress button click
+     */
+    @FXML
+    private void handleProgressButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Progress.fxml", "FitTrack - Progress");
+        } catch (IOException e) {
+            logger.error("✗ Error loading Progress", e);
+        }
+    }
+
+    /**
+     * Handle Food Log button click
+     */
+    @FXML
+    private void handleFoodLogButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "FoodLog.fxml", "FitTrack - Food Log");
+        } catch (IOException e) {
+            logger.error("✗ Error loading Food Log", e);
+        }
+    }
+
+    /**
+     * Handle Profile button click
+     */
+    @FXML
+    private void handleProfileButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Profile.fxml", "FitTrack - Profile");
+        } catch (IOException e) {
+            logger.error("✗ Error loading Profile", e);
+        }
+    }
+
+    /**
+     * Handle Logout button click
+     */
+    @FXML
+    private void handleLogoutButtonAction(ActionEvent event) {
+        SessionManager.getInstance().logout();
+        logger.info("✓ User logged out");
+        try {
+            SceneSwitcher.switchScene(event, "Login.fxml", "FitTrack - Login");
+        } catch (IOException e) {
+            logger.error("✗ Error loading Login", e);
+        }
     }
 
     /**
@@ -219,11 +304,7 @@ public class GoalsController {
      */
     @FXML
     private void handleBackButtonAction(ActionEvent event) {
-        try {
-            SceneSwitcher.switchScene(event, "Dashboard.fxml", "FitTrack - Dashboard");
-        } catch (IOException e) {
-            System.err.println("✗ Error loading Dashboard: " + e.getMessage());
-        }
+        handleDashboardButtonAction(event);
     }
 
     /**

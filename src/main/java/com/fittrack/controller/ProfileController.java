@@ -1,9 +1,15 @@
 package com.fittrack.controller;
 
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
+
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -11,15 +17,16 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
-import java.io.IOException;
-
 /**
  * ProfileController - Controller for the Profile.fxml view
  * Handles user profile management with database integration
  */
 public class ProfileController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProfileController.class);
+
     @FXML private Label welcomeLabel;
+    @FXML private Label userLabel;
     @FXML private Label messageLabel;
     @FXML private TextField ageField;
     @FXML private ComboBox<String> genderComboBox;
@@ -42,10 +49,11 @@ public class ProfileController {
 
         if (currentUser != null) {
             welcomeLabel.setText("Welcome, " + currentUser.getUsername() + "!");
+            userLabel.setText("Welcome, " + currentUser.getUsername() + "!");
             loadUserProfile();
         } else {
             welcomeLabel.setText("Welcome!");
-            System.out.println("⚠ Warning: No user logged in");
+            logger.warn("⚠ Warning: No user logged in");
         }
 
         // Populate combo boxes
@@ -139,7 +147,7 @@ public class ProfileController {
                 if (success) {
                     SessionManager.getInstance().setLoggedInUser(currentUser);
                     showSuccess("Profile saved successfully!");
-                    System.out.println("✓ Profile updated in database!");
+                    logger.info("✓ Profile updated in database!");
                 } else {
                     showError("Failed to save profile. Please try again.");
                 }
@@ -161,7 +169,59 @@ public class ProfileController {
             SceneSwitcher.switchScene(event, "Dashboard.fxml", "FitTrack - Dashboard");
         } catch (IOException e) {
             showError("Error loading dashboard.");
-            System.err.println("✗ Error: " + e.getMessage());
+            logger.error("✗ Error loading dashboard", e);
+        }
+    }
+
+    /**
+     * Handle Goals button click
+     */
+    @FXML
+    private void handleGoalsButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Goals.fxml", "FitTrack - Goals");
+        } catch (IOException e) {
+            showError("Error loading goals screen.");
+            logger.error("✗ Error loading goals screen", e);
+        }
+    }
+
+    /**
+     * Handle Workouts button click
+     */
+    @FXML
+    private void handleWorkoutsButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "WorkoutPlans.fxml", "FitTrack - Workouts");
+        } catch (IOException e) {
+            showError("Error loading workouts screen.");
+            logger.error("✗ Error loading workouts screen", e);
+        }
+    }
+
+    /**
+     * Handle Progress button click
+     */
+    @FXML
+    private void handleProgressButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Progress.fxml", "FitTrack - Progress");
+        } catch (IOException e) {
+            showError("Error loading progress screen.");
+            logger.error("✗ Error loading progress screen", e);
+        }
+    }
+
+    /**
+     * Handle Food Log button click
+     */
+    @FXML
+    private void handleFoodLogButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "FoodLog.fxml", "FitTrack - Food Log");
+        } catch (IOException e) {
+            showError("Error loading food log screen.");
+            logger.error("✗ Error loading food log screen", e);
         }
     }
 
@@ -172,14 +232,14 @@ public class ProfileController {
     private void handleLogoutButtonAction(ActionEvent event) {
         // Clear the session
         SessionManager.getInstance().logout();
-        System.out.println("✓ User logged out");
+        logger.info("✓ User logged out");
 
         // Navigate back to login
         try {
             SceneSwitcher.switchScene(event, "Login.fxml", "FitTrack - Login");
         } catch (IOException e) {
             showError("Error loading login screen.");
-            System.err.println("✗ Error: " + e.getMessage());
+            logger.error("✗ Error loading login screen", e);
         }
     }
 

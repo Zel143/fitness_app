@@ -9,152 +9,170 @@ import java.sql.Statement;
 import java.time.LocalDate;
 
 import org.mindrot.jbcrypt.BCrypt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DatabaseManager {
 
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/fittrack_db";
-    private static final String DB_USER = "fittrack_admin";
-    private static final String DB_PASSWORD = "mySQL";
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
+
+    // SQLite database file in the project folder
+    private static final String DB_FILE = "fittrack.db";
+    private static final String DB_URL = "jdbc:sqlite:" + DB_FILE;
+    
+    // Static block to load SQLite JDBC driver
+    static {
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            logger.error("SQLite JDBC driver not found!", e);
+        }
+    }
     
     /**
-     * Establishes a connection to the MySQL database.
+     * Establishes a connection to the SQLite database.
+     * Database file is stored in the project folder: fittrack.db
      */
     public Connection connect() {
         try {
-            return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            // Connect to SQLite database in project folder
+            Connection conn = DriverManager.getConnection(DB_URL);
+            logger.info("✓ Database connected: {}", DB_FILE);
+            return conn;
         } catch (SQLException e) {
-            System.err.println("✗ Database connection failed: " + e.getMessage());
+            logger.error("✗ Database connection failed: {}", e.getMessage(), e);
             return null;
         }
     }
 
     /**
      * Creates all necessary tables if they do not already exist.
+     * SQLite uses AUTOINCREMENT instead of AUTO_INCREMENT
      */
     public void createTables() {
         String[] tablesSQL = {
             // 1. users Table
             "CREATE TABLE IF NOT EXISTS users (\n"
-            + "    user_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    username VARCHAR(50) NOT NULL UNIQUE,\n"
-            + "    email VARCHAR(100) NOT NULL UNIQUE,\n"
-            + "    password_hash VARCHAR(255) NOT NULL,\n"
-            + "    age INT,\n"
-            + "    gender VARCHAR(20),\n"
-            + "    height DOUBLE,\n"
-            + "    weight DOUBLE,\n"
-            + "    fitness_level VARCHAR(20),\n"
+            + "    user_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    username TEXT NOT NULL UNIQUE,\n"
+            + "    email TEXT NOT NULL UNIQUE,\n"
+            + "    password_hash TEXT NOT NULL,\n"
+            + "    age INTEGER,\n"
+            + "    gender TEXT,\n"
+            + "    height REAL,\n"
+            + "    weight REAL,\n"
+            + "    fitness_level TEXT,\n"
             + "    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n"
-            + ") ENGINE=InnoDB;",
+            + ");",
             
             // 2. goals Table
             "CREATE TABLE IF NOT EXISTS goals (\n"
-            + "    goal_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    user_id INT NOT NULL,\n"
-            + "    goal_type VARCHAR(50) NOT NULL,\n"
-            + "    target_value DOUBLE,\n"
-            + "    target_unit VARCHAR(20),\n"
+            + "    goal_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    user_id INTEGER NOT NULL,\n"
+            + "    goal_type TEXT NOT NULL,\n"
+            + "    target_value REAL,\n"
+            + "    target_unit TEXT,\n"
             + "    target_date DATE,\n"
             + "    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n"
-            + "    status VARCHAR(20) DEFAULT 'active',\n"
+            + "    status TEXT DEFAULT 'active',\n"
             + "    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE\n"
-            + ") ENGINE=InnoDB;",
+            + ");",
             
             // 3. workout_plans Table
             "CREATE TABLE IF NOT EXISTS workout_plans (\n"
-            + "    plan_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    user_id INT NOT NULL,\n"
-            + "    plan_name VARCHAR(100) NOT NULL,\n"
+            + "    plan_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    user_id INTEGER NOT NULL,\n"
+            + "    plan_name TEXT NOT NULL,\n"
             + "    description TEXT,\n"
-            + "    difficulty VARCHAR(20),\n"
-            + "    duration_weeks INT,\n"
+            + "    difficulty TEXT,\n"
+            + "    duration_weeks INTEGER,\n"
             + "    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n"
             + "    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE\n"
-            + ") ENGINE=InnoDB;",
+            + ");",
             
             // 4. plan_exercises Table
             "CREATE TABLE IF NOT EXISTS plan_exercises (\n"
-            + "    plan_exercise_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    plan_id INT NOT NULL,\n"
-            + "    exercise_name VARCHAR(100) NOT NULL,\n"
-            + "    muscle_group VARCHAR(50),\n"
-            + "    sets INT,\n"
-            + "    reps INT,\n"
-            + "    duration INT,\n"
+            + "    plan_exercise_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    plan_id INTEGER NOT NULL,\n"
+            + "    exercise_name TEXT NOT NULL,\n"
+            + "    muscle_group TEXT,\n"
+            + "    sets INTEGER,\n"
+            + "    reps INTEGER,\n"
+            + "    duration INTEGER,\n"
             + "    notes TEXT,\n"
-            + "    day_of_week INT,\n"
+            + "    day_of_week INTEGER,\n"
             + "    FOREIGN KEY (plan_id) REFERENCES workout_plans(plan_id) ON DELETE CASCADE\n"
-            + ") ENGINE=InnoDB;",
+            + ");",
             
             // 5. exercises Table
             "CREATE TABLE IF NOT EXISTS exercises (\n"
-            + "    exercise_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    exercise_name VARCHAR(100) NOT NULL UNIQUE,\n"
-            + "    muscle_group VARCHAR(50),\n"
-            + "    exercise_type ENUM('strength', 'cardio') DEFAULT 'strength' NOT NULL\n"
-            + ") ENGINE=InnoDB;",
+            + "    exercise_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    exercise_name TEXT NOT NULL UNIQUE,\n"
+            + "    muscle_group TEXT,\n"
+            + "    exercise_type TEXT DEFAULT 'strength' NOT NULL\n"
+            + ");",
             
             // 6. workout_log Table
             "CREATE TABLE IF NOT EXISTS workout_log (\n"
-            + "    log_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    user_id INT NOT NULL,\n"
-            + "    exercise_id INT NOT NULL,\n"
-            + "    sets INT,\n"
-            + "    reps INT,\n"
-            + "    weight_used DOUBLE,\n"
-            + "    duration_minutes DECIMAL(6,2),\n"
-            + "    distance_km DECIMAL(6,2),\n"
+            + "    log_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    user_id INTEGER NOT NULL,\n"
+            + "    exercise_id INTEGER NOT NULL,\n"
+            + "    sets INTEGER,\n"
+            + "    reps INTEGER,\n"
+            + "    weight_used REAL,\n"
+            + "    duration_minutes REAL,\n"
+            + "    distance_km REAL,\n"
             + "    date DATE NOT NULL,\n"
             + "    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,\n"
             + "    FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id) ON DELETE RESTRICT\n"
-            + ") ENGINE=InnoDB;",
+            + ");",
             
             // 7. weight_history Table
             "CREATE TABLE IF NOT EXISTS weight_history (\n"
-            + "    history_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    user_id INT NOT NULL,\n"
-            + "    weight DOUBLE NOT NULL,\n"
+            + "    history_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    user_id INTEGER NOT NULL,\n"
+            + "    weight REAL NOT NULL,\n"
             + "    date DATE NOT NULL,\n"
             + "    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE\n"
-            + ") ENGINE=InnoDB;",
+            + ");",
             
             // 8. food_library Table
             "CREATE TABLE IF NOT EXISTS food_library (\n"
-            + "    food_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    food_name VARCHAR(100) NOT NULL,\n"
-            + "    serving_size_g DECIMAL(6,2),\n"
-            + "    calories DECIMAL(6,2),\n"
-            + "    protein DOUBLE,\n"
-            + "    carbs DOUBLE,\n"
-            + "    fats DOUBLE,\n"
-            + "    created_by_user_id INT NOT NULL,\n"
+            + "    food_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    food_name TEXT NOT NULL,\n"
+            + "    serving_size_g REAL,\n"
+            + "    calories REAL,\n"
+            + "    protein REAL,\n"
+            + "    carbs REAL,\n"
+            + "    fats REAL,\n"
+            + "    created_by_user_id INTEGER NOT NULL,\n"
             + "    FOREIGN KEY (created_by_user_id) REFERENCES users(user_id) ON DELETE CASCADE\n"
-            + ") ENGINE=InnoDB;",
+            + ");",
             
             // 9. food_log Table
             "CREATE TABLE IF NOT EXISTS food_log (\n"
-            + "    food_log_id INT AUTO_INCREMENT PRIMARY KEY,\n"
-            + "    user_id INT NOT NULL,\n"
-            + "    food_library_id INT,\n"
-            + "    food_name VARCHAR(100) NOT NULL,\n"
-            + "    calories INT NOT NULL,\n"
-            + "    protein DOUBLE,\n"
-            + "    carbs DOUBLE,\n"
-            + "    fats DOUBLE,\n"
+            + "    food_log_id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            + "    user_id INTEGER NOT NULL,\n"
+            + "    food_library_id INTEGER,\n"
+            + "    food_name TEXT NOT NULL,\n"
+            + "    calories INTEGER NOT NULL,\n"
+            + "    protein REAL,\n"
+            + "    carbs REAL,\n"
+            + "    fats REAL,\n"
             + "    date DATE NOT NULL,\n"
             + "    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,\n"
             + "    FOREIGN KEY (food_library_id) REFERENCES food_library(food_id) ON DELETE SET NULL\n"
-            + ") ENGINE=InnoDB;"
+            + ");"
         };
 
         try (Connection conn = connect(); Statement stmt = conn.createStatement()) {
-            System.out.println("✓ Checking and creating tables...");
+            logger.info("✓ Checking and creating tables...");
             for (String sql : tablesSQL) {
                 stmt.execute(sql);
             }
-            System.out.println("✓ All tables are ready!");
+            logger.info("✓ All tables are ready!");
         } catch (SQLException e) {
-            System.err.println("✗ Error creating tables: " + e.getMessage());
+            logger.error("✗ Error creating tables: {}", e.getMessage(), e);
         }
     }
 
@@ -171,10 +189,10 @@ public class DatabaseManager {
             pstmt.setString(2, user.email);
             pstmt.setString(3, hashedPassword);
             pstmt.executeUpdate();
-            System.out.println("✓ User registered: " + user.username);
+            logger.info("✓ User registered: {}", user.username);
             return true;
         } catch (SQLException e) {
-            System.err.println("✗ Registration error: " + e.getMessage());
+            logger.error("✗ Registration error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -183,7 +201,8 @@ public class DatabaseManager {
      * Authenticates a user by checking their password.
      */
     public User login(String username, String password) {
-        String sql = "SELECT * FROM users WHERE username = ?";
+        // Use BINARY comparison to ensure case-sensitive username matching
+        String sql = "SELECT * FROM users WHERE username = ? COLLATE BINARY";
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -192,26 +211,84 @@ public class DatabaseManager {
 
             if (rs.next()) {
                 String storedHash = rs.getString("password_hash");
+                
+                // BCrypt.checkpw() is ALWAYS case-sensitive
                 if (BCrypt.checkpw(password, storedHash)) {
                     // Password is correct, create User object
                     User user = new User();
                     user.userId = rs.getInt("user_id");
                     user.username = rs.getString("username");
                     user.email = rs.getString("email");
-                    user.age = rs.getObject("age", Integer.class);
+                    
+                    // Handle potentially NULL values from SQLite
+                    Integer ageValue = rs.getObject("age") != null ? rs.getInt("age") : null;
+                    user.age = ageValue;
+                    
                     user.gender = rs.getString("gender");
-                    user.height = rs.getObject("height", Double.class);
-                    user.weight = rs.getObject("weight", Double.class);
+                    
+                    Double heightValue = rs.getObject("height") != null ? rs.getDouble("height") : null;
+                    user.height = heightValue;
+                    
+                    Double weightValue = rs.getObject("weight") != null ? rs.getDouble("weight") : null;
+                    user.weight = weightValue;
+                    
                     user.fitnessLevel = rs.getString("fitness_level");
                     
-                    System.out.println("✓ Login successful: " + username);
+                    logger.info("✓ Login successful: {}", username);
                     return user;
+                } else {
+                    logger.warn("✗ Password verification failed for user: {}", username);
                 }
+            } else {
+                logger.warn("✗ User not found: {}", username);
             }
         } catch (SQLException e) {
-            System.err.println("✗ Login error: " + e.getMessage());
+            logger.error("✗ Login error: {}", e.getMessage(), e);
         }
-        System.out.println("✗ Login failed: Invalid credentials");
+        logger.warn("✗ Login failed: Invalid credentials");
+        return null;
+    }
+
+    /**
+     * Retrieves a user by their ID from the database.
+     * Used to refresh user data after profile updates.
+     * @param userId the ID of the user to retrieve
+     * @return User object if found, null otherwise
+     */
+    public User getUserById(int userId) {
+        String sql = "SELECT * FROM users WHERE user_id = ?";
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                User user = new User();
+                user.userId = rs.getInt("user_id");
+                user.username = rs.getString("username");
+                user.email = rs.getString("email");
+                
+                // Handle potentially NULL values from SQLite
+                Integer ageValue = rs.getObject("age") != null ? rs.getInt("age") : null;
+                user.age = ageValue;
+                
+                user.gender = rs.getString("gender");
+                
+                Double heightValue = rs.getObject("height") != null ? rs.getDouble("height") : null;
+                user.height = heightValue;
+                
+                Double weightValue = rs.getObject("weight") != null ? rs.getDouble("weight") : null;
+                user.weight = weightValue;
+                
+                user.fitnessLevel = rs.getString("fitness_level");
+                
+                logger.info("✓ User data refreshed for ID: {}", userId);
+                return user;
+            }
+        } catch (SQLException e) {
+            logger.error("✗ Error fetching user by ID: {}", e.getMessage(), e);
+        }
         return null;
     }
 
@@ -225,18 +302,36 @@ public class DatabaseManager {
 
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setObject(1, user.age);
+            
+            // Handle NULL values properly for SQLite
+            if (user.age != null) {
+                pstmt.setInt(1, user.age);
+            } else {
+                pstmt.setNull(1, java.sql.Types.INTEGER);
+            }
+            
             pstmt.setString(2, user.gender);
-            pstmt.setObject(3, user.height);
-            pstmt.setObject(4, user.weight);
+            
+            if (user.height != null) {
+                pstmt.setDouble(3, user.height);
+            } else {
+                pstmt.setNull(3, java.sql.Types.DOUBLE);
+            }
+            
+            if (user.weight != null) {
+                pstmt.setDouble(4, user.weight);
+            } else {
+                pstmt.setNull(4, java.sql.Types.DOUBLE);
+            }
+            
             pstmt.setString(5, user.fitnessLevel);
             pstmt.setInt(6, user.userId);
             
             int rowsAffected = pstmt.executeUpdate();
-            System.out.println("✓ Profile updated for user: " + user.username);
+            logger.info("✓ Profile updated for user: {} (rows affected: {})", user.username, rowsAffected);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Update profile error: " + e.getMessage());
+            logger.error("✗ Update profile error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -249,30 +344,43 @@ public class DatabaseManager {
             + "VALUES(?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, goal.userId);
             pstmt.setString(2, goal.goalType);
-            pstmt.setObject(3, goal.targetValue);
+            
+            // Handle NULL values properly
+            if (goal.targetValue != null) {
+                pstmt.setDouble(3, goal.targetValue);
+            } else {
+                pstmt.setNull(3, java.sql.Types.DOUBLE);
+            }
+            
             pstmt.setString(4, goal.targetUnit);
-            pstmt.setObject(5, goal.targetDate);
+            
+            if (goal.targetDate != null) {
+                pstmt.setObject(5, goal.targetDate);
+            } else {
+                pstmt.setNull(5, java.sql.Types.DATE);
+            }
+            
             pstmt.setString(6, goal.status);
             
             int rowsAffected = pstmt.executeUpdate();
             
-            // Retrieve the generated goal_id
+            // SQLite: Get last insert ID using last_insert_rowid()
             if (rowsAffected > 0) {
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        goal.goalId = generatedKeys.getInt(1);
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                    if (rs.next()) {
+                        goal.goalId = rs.getInt(1);
                     }
                 }
             }
             
-            System.out.println("✓ Goal saved for user ID: " + goal.userId + " with goal ID: " + goal.goalId);
+            logger.info("✓ Goal saved for user ID: {} with goal ID: {}", goal.userId, goal.goalId);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Save goal error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Save goal error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -307,10 +415,9 @@ public class DatabaseManager {
                 
                 goals.add(goal);
             }
-            System.out.println("✓ Retrieved " + goals.size() + " goals for user ID: " + userId);
+            logger.info("✓ Retrieved {} goals for user ID: {}", goals.size(), userId);
         } catch (SQLException e) {
-            System.err.println("✗ Get goals error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Get goals error: {}", e.getMessage(), e);
         }
         return goals;
     }
@@ -331,17 +438,23 @@ public class DatabaseManager {
                 WorkoutLog log = new WorkoutLog();
                 log.setId(rs.getInt("log_id"));
                 log.setUserId(rs.getInt("user_id"));
-                log.setWorkoutName(rs.getString("exercise_id")); // Map as needed
+                
+                // Try to get workout_name first, fallback to exercise_id
+                String workoutName = rs.getString("workout_name");
+                if (workoutName == null || workoutName.isEmpty()) {
+                    workoutName = "Exercise #" + rs.getInt("exercise_id");
+                }
+                log.setWorkoutName(workoutName);
+                
                 log.setSets(rs.getInt("sets"));
                 log.setReps(rs.getInt("reps"));
                 log.setWeightUsed(rs.getDouble("weight_used"));
                 log.setDate(rs.getObject("date", LocalDate.class));
                 logs.add(log);
             }
-            System.out.println("✓ Retrieved " + logs.size() + " workout logs for user ID: " + userId);
+            logger.info("✓ Retrieved {} workout logs for user ID: {}", logs.size(), userId);
         } catch (SQLException e) {
-            System.err.println("✗ Get workout logs error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Get workout logs error: {}", e.getMessage(), e);
         }
         return logs;
     }
@@ -368,10 +481,9 @@ public class DatabaseManager {
                 plan.durationWeeks = rs.getInt("duration_weeks");
                 plans.add(plan);
             }
-            System.out.println("✓ Retrieved " + plans.size() + " workout plans for user ID: " + userId);
+            logger.info("✓ Retrieved {} workout plans for user ID: {}", plans.size(), userId);
         } catch (SQLException e) {
-            System.err.println("✗ Get workout plans error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Get workout plans error: {}", e.getMessage(), e);
         }
         return plans;
     }
@@ -384,7 +496,7 @@ public class DatabaseManager {
             + "VALUES(?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, plan.userId);
             pstmt.setString(2, plan.planName);
             pstmt.setString(3, plan.description);
@@ -393,19 +505,20 @@ public class DatabaseManager {
             
             int rowsAffected = pstmt.executeUpdate();
             
+            // SQLite: Get last insert ID using last_insert_rowid()
             if (rowsAffected > 0) {
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        plan.planId = generatedKeys.getInt(1);
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                    if (rs.next()) {
+                        plan.planId = rs.getInt(1);
                     }
                 }
             }
             
-            System.out.println("✓ Workout plan saved with ID: " + plan.planId);
+            logger.info("✓ Workout plan saved with ID: {}", plan.planId);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Save workout plan error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Save workout plan error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -421,11 +534,10 @@ public class DatabaseManager {
             pstmt.setInt(1, planId);
             
             int rowsAffected = pstmt.executeUpdate();
-            System.out.println("✓ Workout plan deleted with ID: " + planId);
+            logger.info("✓ Workout plan deleted with ID: {}", planId);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Delete workout plan error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Delete workout plan error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -451,10 +563,9 @@ public class DatabaseManager {
                 );
                 history.add(entry);
             }
-            System.out.println("✓ Retrieved " + history.size() + " weight entries for user ID: " + userId);
+            logger.info("✓ Retrieved {} weight entries for user ID: {}", history.size(), userId);
         } catch (SQLException e) {
-            System.err.println("✗ Get weight history error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Get weight history error: {}", e.getMessage(), e);
         }
         return history;
     }
@@ -466,26 +577,27 @@ public class DatabaseManager {
         String sql = "INSERT INTO weight_history(user_id, weight, date) VALUES(?, ?, ?)";
 
         try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, entry.getUserId());
             pstmt.setDouble(2, entry.getWeight());
             pstmt.setObject(3, entry.getDate());
             
             int rowsAffected = pstmt.executeUpdate();
             
+            // SQLite: Get last insert ID using last_insert_rowid()
             if (rowsAffected > 0) {
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        entry.setId(generatedKeys.getInt(1));
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                    if (rs.next()) {
+                        entry.setId(rs.getInt(1));
                     }
                 }
             }
             
-            System.out.println("✓ Weight history saved with ID: " + entry.getId());
+            logger.info("✓ Weight history saved with ID: {}", entry.getId());
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Save weight history error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Save weight history error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -501,11 +613,10 @@ public class DatabaseManager {
             pstmt.setInt(1, historyId);
             
             int rowsAffected = pstmt.executeUpdate();
-            System.out.println("✓ Weight history deleted with ID: " + historyId);
+            logger.info("✓ Weight history deleted with ID: {}", historyId);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Delete weight history error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Delete weight history error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -541,10 +652,9 @@ public class DatabaseManager {
                 );
                 logs.add(log);
             }
-            System.out.println("✓ Retrieved " + logs.size() + " food log entries");
+            logger.info("✓ Retrieved {} food log entries", logs.size());
         } catch (SQLException e) {
-            System.err.println("✗ Get food log error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Get food log error: {}", e.getMessage(), e);
         }
         return logs;
     }
@@ -557,7 +667,7 @@ public class DatabaseManager {
             + "VALUES(?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, log.getUserId());
             pstmt.setString(2, log.getFoodName());
             pstmt.setInt(3, log.getCalories());
@@ -568,19 +678,20 @@ public class DatabaseManager {
             
             int rowsAffected = pstmt.executeUpdate();
             
+            // SQLite: Get last insert ID using last_insert_rowid()
             if (rowsAffected > 0) {
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        log.setId(generatedKeys.getInt(1));
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                    if (rs.next()) {
+                        log.setId(rs.getInt(1));
                     }
                 }
             }
             
-            System.out.println("✓ Food log saved with ID: " + log.getId());
+            logger.info("✓ Food log saved with ID: {}", log.getId());
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Save food log error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Save food log error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -596,11 +707,10 @@ public class DatabaseManager {
             pstmt.setInt(1, foodLogId);
             
             int rowsAffected = pstmt.executeUpdate();
-            System.out.println("✓ Food log deleted with ID: " + foodLogId);
+            logger.info("✓ Food log deleted with ID: {}", foodLogId);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Delete food log error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Delete food log error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -609,34 +719,67 @@ public class DatabaseManager {
      * Saves a new workout log.
      */
     public boolean saveWorkoutLog(WorkoutLog log) {
-        String sql = "INSERT INTO workout_log(user_id, exercise_id, sets, reps, weight_used, date) "
-            + "VALUES(?, ?, ?, ?, ?, ?)";
+        // First, ensure workout_name column exists
+        ensureWorkoutNameColumn();
+        
+        String sql = "INSERT INTO workout_log(user_id, exercise_id, workout_name, sets, reps, weight_used, date) "
+            + "VALUES(?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, log.getUserId());
-            pstmt.setInt(2, 1); // You'll need to map exercise name to exercise_id
-            pstmt.setInt(3, log.getSets());
-            pstmt.setInt(4, log.getReps());
-            pstmt.setDouble(5, log.getWeightUsed());
-            pstmt.setObject(6, log.getDate());
+            pstmt.setInt(2, 1); // Default exercise_id for compatibility
+            pstmt.setString(3, log.getWorkoutName());
+            pstmt.setInt(4, log.getSets());
+            pstmt.setInt(5, log.getReps());
+            pstmt.setDouble(6, log.getWeightUsed());
+            pstmt.setObject(7, log.getDate());
             
             int rowsAffected = pstmt.executeUpdate();
             
+            // SQLite: Get last insert ID using last_insert_rowid()
             if (rowsAffected > 0) {
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        log.setId(generatedKeys.getInt(1));
+                try (Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
+                    if (rs.next()) {
+                        log.setId(rs.getInt(1));
                     }
                 }
             }
             
-            System.out.println("✓ Workout log saved with ID: " + log.getId());
+            logger.info("✓ Workout log saved with ID: {}", log.getId());
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Save workout log error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Save workout log error: {}", e.getMessage(), e);
             return false;
+        }
+    }
+
+    /**
+     * Ensures workout_name column exists in workout_log table
+     */
+    private void ensureWorkoutNameColumn() {
+        String checkColumnSql = "PRAGMA table_info(workout_log)";
+        String alterTableSql = "ALTER TABLE workout_log ADD COLUMN workout_name TEXT";
+        
+        try (Connection conn = connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(checkColumnSql)) {
+            
+            boolean hasWorkoutName = false;
+            while (rs.next()) {
+                if ("workout_name".equals(rs.getString("name"))) {
+                    hasWorkoutName = true;
+                    break;
+                }
+            }
+            
+            if (!hasWorkoutName) {
+                stmt.executeUpdate(alterTableSql);
+                logger.info("✓ Added workout_name column to workout_log table");
+            }
+        } catch (SQLException e) {
+            logger.error("✗ Error ensuring workout_name column: {}", e.getMessage(), e);
         }
     }
 
@@ -651,11 +794,29 @@ public class DatabaseManager {
             pstmt.setInt(1, goalId);
             
             int rowsAffected = pstmt.executeUpdate();
-            System.out.println("✓ Goal deleted with ID: " + goalId);
+            logger.info("✓ Goal deleted with ID: {}", goalId);
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("✗ Delete goal error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("✗ Delete goal error: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Deletes a workout log by its ID.
+     */
+    public boolean deleteWorkoutLog(int workoutId) {
+        String sql = "DELETE FROM workout_log WHERE log_id = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, workoutId);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            logger.info("✓ Workout log deleted with ID: {}", workoutId);
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            logger.error("✗ Delete workout log error: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -666,11 +827,11 @@ public class DatabaseManager {
     public boolean testConnection() {
         try (Connection conn = connect()) {
             if (conn != null && !conn.isClosed()) {
-                System.out.println("✓ Database connection test: SUCCESS");
+                logger.info("✓ Database connection test: SUCCESS");
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("✗ Database connection test FAILED: " + e.getMessage());
+            logger.error("✗ Database connection test FAILED: {}", e.getMessage(), e);
         }
         return false;
     }

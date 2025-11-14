@@ -1,5 +1,10 @@
 package com.fittrack;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fittrack.model.DatabaseManager;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -12,8 +17,14 @@ import javafx.stage.Stage;
  */
 public class FitTrackApp extends Application {
 
+    private static final Logger logger = LoggerFactory.getLogger(FitTrackApp.class);
+
     @Override
     public void start(Stage primaryStage) throws Exception {
+        // Initialize database on startup
+        DatabaseManager dbManager = new DatabaseManager();
+        dbManager.createTables();
+        
         // Load the Login.fxml file
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/fittrack/view/Login.fxml"));
         Parent root = loader.load();
@@ -30,14 +41,15 @@ public class FitTrackApp extends Application {
         primaryStage.show();
 
         // Console output
-        System.out.println("✓ FitTrack Application Started");
-        System.out.println("✓ Using REAL DATABASE (MySQL)");
-        System.out.println("ℹ Register a new account or login with existing credentials");
+        logger.info("✓ FitTrack Application Started");
+        logger.info("✓ Using SQLite DATABASE (File-based)");
+        logger.info("✓ Database location: fittrack.db (in project folder)");
+        logger.info("ℹ Register a new account or login with existing credentials");
     }
 
     @Override
     public void stop() {
-        System.out.println("✓ FitTrack Application Closed");
+        logger.info("✓ FitTrack Application Closed");
     }
 
     public static void main(String[] args) {

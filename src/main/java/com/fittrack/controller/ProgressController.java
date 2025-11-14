@@ -3,6 +3,9 @@ package com.fittrack.controller;
 import java.io.IOException;
 import java.time.LocalDate;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
 import com.fittrack.model.WeightHistory;
@@ -30,7 +33,10 @@ import javafx.scene.control.cell.PropertyValueFactory;
  */
 public class ProgressController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProgressController.class);
+
     @FXML private Label welcomeLabel;
+    @FXML private Label userLabel;
     @FXML private LineChart<String, Number> weightChart;
     @FXML private TableView<WeightHistory> weightHistoryTable;
     @FXML private TableColumn<WeightHistory, LocalDate> dateColumn;
@@ -54,13 +60,14 @@ public class ProgressController {
 
         if (currentUser != null) {
             welcomeLabel.setText(currentUser.getUsername() + "'s Progress");
+            userLabel.setText("Welcome, " + currentUser.getUsername() + "!");
             setupTableColumns();
             loadWeightHistory();
             updateChart();
             updateStats();
         } else {
             welcomeLabel.setText("Progress Tracking");
-            System.out.println("⚠ Warning: No user logged in");
+            logger.warn("⚠ Warning: No user logged in");
         }
 
         // Set today's date as default
@@ -87,7 +94,7 @@ public class ProgressController {
         var history = dbManager.getWeightHistory(currentUser.getUserId());
         weightHistoryList.addAll(history);
         
-        System.out.println("✓ Loaded " + history.size() + " weight history entries from database");
+        logger.info("✓ Loaded {} weight history entries from database", history.size());
     }
 
     /**
@@ -96,13 +103,20 @@ public class ProgressController {
     private void updateChart() {
         weightChart.getData().clear();
 
+        // Ensure chart displays chronologically (oldest -> newest) regardless of table order
+        var sortedForChart = weightHistoryList.stream()
+                .sorted((a, b) -> a.getDate().compareTo(b.getDate()))
+                .toList();
+
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Weight (kg)");
 
-        for (WeightHistory wh : weightHistoryList) {
+        for (WeightHistory wh : sortedForChart) {
             series.getData().add(new XYChart.Data<>(wh.getDate().toString(), wh.getWeight()));
         }
 
+        weightChart.setLegendVisible(true);
+        weightChart.setTitle("Weight Over Time");
         weightChart.getData().add(series);
     }
 
@@ -115,8 +129,10 @@ public class ProgressController {
             return;
         }
 
-        double currentWeight = weightHistoryList.get(weightHistoryList.size() - 1).getWeight();
-        double startWeight = weightHistoryList.get(0).getWeight();
+        // Database returns entries in DESC order (newest first)
+        // So index 0 = latest, last index = oldest
+        double currentWeight = weightHistoryList.get(0).getWeight();
+        double startWeight = weightHistoryList.get(weightHistoryList.size() - 1).getWeight();
         double change = currentWeight - startWeight;
         double changePercent = (change / startWeight) * 100;
 
@@ -179,16 +195,24 @@ public class ProgressController {
         boolean success = dbManager.saveWeightHistory(newEntry);
 
         if (success) {
-            weightHistoryList.add(newEntry);
-            showSuccess("Weight recorded successfully!");
+            logger.info("✓ Weight entry saved to database with ID: {}", newEntry.getId());
+            
+            // Reload from database to ensure correct data and IDs
+            loadWeightHistory();
+            
+            // Update UI
             updateChart();
             updateStats();
+            
+            // Clear form
             weightField.clear();
             datePicker.setValue(LocalDate.now());
-            System.out.println("✓ Weight entry added: " + weight + " kg on " + date);
+            
+            showSuccess("Weight recorded successfully!");
+            logger.info("✓ Weight entry added: {} kg on {}", weight, date);
         } else {
             showError("Failed to save weight entry. Please try again.");
-            System.err.println("✗ Failed to save weight history to database");
+            logger.error("✗ Failed to save weight history to database");
         }
     }
 
@@ -214,17 +238,96 @@ public class ProgressController {
                 boolean success = dbManager.deleteWeightHistory(selectedEntry.getId());
                 
                 if (success) {
-                    weightHistoryList.remove(selectedEntry);
+                    logger.info("✓ Weight entry deleted from database with ID: {}", selectedEntry.getId());
+                    
+                    // Reload from database to ensure data is current
+                    loadWeightHistory();
+                    
+                    // Update UI
                     updateChart();
                     updateStats();
+                    
                     showSuccess("Entry deleted successfully!");
-                    System.out.println("✓ Weight entry deleted from database with ID: " + selectedEntry.getId());
                 } else {
                     showError("Failed to delete weight entry. Please try again.");
-                    System.err.println("✗ Failed to delete weight history from database");
+                    logger.error("✗ Failed to delete weight history from database");
                 }
             }
         });
+    }
+
+    /**
+     * Handle Dashboard button click
+     */
+    @FXML
+    private void handleDashboardButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Dashboard.fxml", "FitTrack - Dashboard");
+        } catch (IOException e) {
+            logger.error("✗ Error loading Dashboard.fxml", e);
+        }
+    }
+
+    /**
+     * Handle Goals button click
+     */
+    @FXML
+    private void handleGoalsButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Goals.fxml", "FitTrack - Goals");
+        } catch (IOException e) {
+            logger.error("✗ Error loading Goals.fxml", e);
+        }
+    }
+
+    /**
+     * Handle Workouts button click
+     */
+    @FXML
+    private void handleWorkoutsButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "WorkoutPlans.fxml", "FitTrack - Workouts");
+        } catch (IOException e) {
+            logger.error("✗ Error loading WorkoutPlans.fxml", e);
+        }
+    }
+
+    /**
+     * Handle Food Log button click
+     */
+    @FXML
+    private void handleFoodLogButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "FoodLog.fxml", "FitTrack - Food Log");
+        } catch (IOException e) {
+            logger.error("✗ Error loading FoodLog.fxml", e);
+        }
+    }
+
+    /**
+     * Handle Profile button click
+     */
+    @FXML
+    private void handleProfileButtonAction(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, "Profile.fxml", "FitTrack - Profile");
+        } catch (IOException e) {
+            logger.error("✗ Error loading Profile.fxml", e);
+        }
+    }
+
+    /**
+     * Handle Logout button click
+     */
+    @FXML
+    private void handleLogoutButtonAction(ActionEvent event) {
+        SessionManager.getInstance().logout();
+        logger.info("✓ User logged out");
+        try {
+            SceneSwitcher.switchScene(event, "Login.fxml", "FitTrack - Login");
+        } catch (IOException e) {
+            logger.error("✗ Error loading Login", e);
+        }
     }
 
     /**
@@ -232,11 +335,7 @@ public class ProgressController {
      */
     @FXML
     private void handleBackButtonAction(ActionEvent event) {
-        try {
-            SceneSwitcher.switchScene(event, "Dashboard.fxml", "FitTrack - Dashboard");
-        } catch (IOException e) {
-            System.err.println("✗ Error loading Dashboard: " + e.getMessage());
-        }
+        handleDashboardButtonAction(event);
     }
 
     /**
