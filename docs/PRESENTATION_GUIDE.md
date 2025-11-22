@@ -1,1112 +1,279 @@
 # 📊 FitTrack Presentation Guide
 
-**Comprehensive presentation flow with deep dive technical details for team presentations**
+**Technical presentation flow for project demos and code walkthroughs**
 
-**Last Updated:** November 13, 2025  
-**Target Audience:** Technical presentations, code walkthroughs, project demos  
-**Estimated Duration:** 45-60 minutes
-
----
-
-## 1. **Project Overview** (3-5 minutes)
-
-### What to Include:
-- **Project Name**: FitTrack - Fitness Tracking Application
-- **Purpose**: A JavaFX-based fitness tracking system with user profiles, goal setting, workout planning, progress tracking, and food logging
-- **Tech Stack**:
-  - **Frontend**: JavaFX 21.0.2 (FXML, Scene Builder)
-  - **Backend**: Java 21
-  - **Build Tool**: Maven 3.6+
-  - **Database**: SQLite (file-based, zero configuration)
-  - **Security**: BCrypt password hashing
-  - **Architecture**: MVC (Model-View-Controller)
-
-### Deep Dive Tips:
-- Show [`pom.xml`](../pom.xml) highlighting key dependencies
-- Demonstrate the dual-tab workout interface (Plans + Daily Log)
-- Highlight the enterprise-grade logging implementation (SLF4J)
-- Explain why JavaFX was chosen (rich UI components, Scene Builder integration)
-- Mention the transition from MySQL to SQLite for portability
-
-### Talking Points:
-> "FitTrack is a comprehensive fitness tracking desktop application built entirely in Java. We chose JavaFX for its modern UI capabilities and FXML support, which allows us to separate our UI design from our business logic. The application migrated from MySQL to SQLite, making it completely portable with zero configuration needed."
-
-> "The dashboard now features a real-time view of today's workout exercises, making it easy for users to see their current day's activity at a glance. All CRUD operations have been thoroughly tested and verified, including recent fixes to ensure proper deletion of workout logs from the database."
+**Last Updated:** November 2025
+**Duration:** 30-45 minutes
 
 ---
 
-## 2. **Project Architecture** (5-7 minutes)
+## 1. Project Overview (3-5 min)
 
-### Directory Structure:
-````text
-FitTrack/
-├── src/main/java/com/fittrack/
-│   ├── FitTrackApp.java              # Application entry point
-│   ├── DatabaseSetup.java            # Database initialization
-│   │
-│   ├── model/                         # Data models & database logic
-│   │   ├── User.java
-│   │   ├── Goal.java
-│   │   ├── WorkoutPlan.java
-│   │   ├── PlanExercise.java
-│   │   ├── WorkoutLog.java
-│   │   ├── WeightHistory.java
-│   │   ├── FoodLog.java
-│   │   └── DatabaseManager.java      # Core database operations
-│   │
-│   ├── controller/                    # UI controllers
-│   │   ├── LoginController.java
-│   │   ├── RegisterController.java
-│   │   ├── ProfileController.java
-│   │   ├── DashboardController.java
-│   │   ├── GoalsController.java
-│   │   ├── WorkoutPlansController.java
-│   │   ├── ProgressController.java
-│   │   └── FoodLogController.java
-│   │
-│   ├── util/                          # Utility classes
-│   │   ├── SessionManager.java        # Singleton for user session
-│   │   ├── SceneSwitcher.java         # Navigation utility
-│   │   ├── CommandHistory.java        # Undo/Redo stack
-│   │   ├── Command.java               # Command interface
-│   │   └── ToastNotification.java     # User feedback
-│   │
-│   └── command/                       # Command pattern implementations
-│       ├── AddFoodLogCommand.java
-│       └── DeleteFoodLogCommand.java
-│
-└── src/main/resources/com/fittrack/view/  # FXML UI files
-    ├── Login.fxml
-    ├── Register.fxml
-    ├── Profile.fxml
-    ├── Dashboard.fxml
-    ├── Goals.fxml
-    ├── WorkoutPlans.fxml
-    ├── Progress.fxml
-    └── FoodLog.fxml
-````
+### Introduction
+- **Name**: FitTrack - Fitness Tracking Application
+- **Purpose**: Desktop fitness tracking with profiles, goals, workouts, nutrition, and progress
+- **Type**: JavaFX desktop application with SQLite database
 
-### Deep Dive Details:
-- **Model Layer**: POJOs with getters/setters, business logic (e.g., `User.calculateBMI()`)
-- **Controller Layer**: Event handlers, form validation, database interactions
-- **View Layer**: FXML-based UI designed in Scene Builder
-- **Utilities**: Session management (Singleton pattern), scene navigation, command pattern
+### Tech Stack
+- **Language**: Java 21
+- **UI**: JavaFX 21.0.2 with FXML
+- **Database**: SQLite 3.44.1.0 (zero-config)
+- **Build**: Maven
+- **Security**: BCrypt password hashing
+- **Logging**: SLF4J structured logging
+- **Testing**: JUnit 5 + Mockito (95% passing)
 
-### Talking Points:
-> "Our architecture follows the MVC pattern strictly. The Model layer contains our data structures and DatabaseManager for all database operations. Controllers handle UI events and coordinate between the View and Model. We've implemented several design patterns including Singleton for session management and Command pattern for undo/redo functionality."
+### Key Talking Points
+> "FitTrack is a comprehensive fitness tracking application using JavaFX for rich UI components and SQLite for portable, zero-configuration data storage. We migrated from MySQL to SQLite, eliminating server dependencies."
 
 ---
 
-## 3. **Database Design** (5 minutes)
+## 2. Architecture (5-7 min)
 
-### Show [`DatabaseManager.java`](../src/main/java/com/fittrack/model/DatabaseManager.java):
+### MVC Pattern
+```
+src/main/java/com/fittrack/
+├── FitTrackApp.java          # Application entry
+├── model/                    # Data entities + DatabaseManager
+├── controller/               # UI event handlers (8 controllers)
+├── util/                     # SessionManager, SceneSwitcher, Command
+└── command/                  # Undo/Redo implementation
 
-**Connection Details**:
-```java
-DB_FILE: fittrack.db
-DB_URL: jdbc:sqlite:fittrack.db
+src/main/resources/com/fittrack/view/
+└── *.fxml                    # UI definitions (8 screens)
 ```
 
-**9 Database Tables**:
-1. **users** - User profiles (username, email, password_hash, age, gender, height, weight, fitness_level)
-2. **goals** - Fitness goals (goal_type, target_value, target_date, status)
-3. **workout_plans** - Workout plans (plan_name, description, difficulty, duration_weeks)
-4. **plan_exercises** - Exercises in plans (exercise_name, sets, reps, duration)
-5. **exercises** - Exercise library (exercise_name, muscle_group, exercise_type)
-6. **workout_log** - Workout history (exercise_id, sets, reps, weight_used, date)
-7. **weight_history** - Weight tracking over time
-8. **food_library** - Food nutrition database
-9. **food_log** - Daily food intake tracking
-
-### Deep Dive:
-- Show entity relationships (Foreign Keys with CASCADE DELETE)
-- Explain BCrypt password hashing for security
-- Demonstrate auto-increment primary keys
-- Show SQLite-specific syntax (INTEGER AUTOINCREMENT, TEXT data type)
-
-### Talking Points:
-> "We use SQLite for our database, which gives us zero-configuration deployment. All data is stored in a single file, making backup as simple as copying a file. We have 9 interconnected tables with proper foreign key constraints and CASCADE DELETE for data integrity. Passwords are hashed using BCrypt with automatic salt generation."
+### Design Patterns
+- **MVC**: Clean separation of concerns
+- **Singleton**: SessionManager for user state
+- **Command**: Undo/Redo for food log
+- **DAO**: DatabaseManager for all data operations
 
 ---
 
-## 4. **Core Features Demo** (10-15 minutes)
+## 3. Database Design (3-5 min)
 
-### Feature 1: User Authentication
-**Flow**: `LoginController.java` → `DatabaseManager.login()` → `SessionManager`
+### Tables (7 total)
+- `users` - Authentication and profiles
+- `goals` - Fitness objectives
+- `workout_plans` - Workout schedules
+- `plan_exercises` - Exercise definitions
+- `workout_log` - Daily exercise tracking
+- `weight_history` - Progress tracking
+- `food_log` - Nutrition tracking
 
-````java
-User user = dbManager.login(username, password);
-if (user != null) {
-    SessionManager.getInstance().setLoggedInUser(user);
-    SceneSwitcher.switchScene(event, "Dashboard.fxml");
-}
-````
-
-**Demo**:
-- Login with test credentials
-- Show BCrypt password verification in console
-- Display session persistence across screens
-- Demonstrate logout clearing session
-
-### Talking Points:
-> "When a user logs in, we retrieve their hashed password from the database and use BCrypt's checkpw method to verify it. If successful, we store the user in our SessionManager singleton, which maintains their state throughout the application."
+### Key Features
+- Auto-initialization on first run
+- BCrypt hashed passwords
+- Foreign key relationships
+- TIMESTAMP for date tracking
 
 ---
 
-### Feature 2: Profile Management
-**Flow**: `ProfileController.java` → `DatabaseManager.updateUserProfile()`
+## 4. Core Features Demo (10-15 min)
 
-**Features**:
-- Edit age, gender, height, weight, fitness level
-- Real-time BMI calculation: `User.calculateBMI()`
-- ComboBox dropdowns for gender/fitness level
-- Input validation (age: 10-120, height: 50-300cm, weight: 20-500kg)
+### 4.1 Authentication
+- Secure registration with email validation
+- BCrypt password hashing
+- Session management
 
-**Demo**:
-- Update profile data
-- Show BMI category changes (Underweight/Normal/Overweight/Obese)
-- Demonstrate console output with success symbols (✓)
+### 4.2 Dashboard
+- BMI calculation
+- Today's workout display
+- Weight progress chart
+- Quick navigation
 
-### Talking Points:
-> "The profile screen demonstrates our data validation and BMI calculation. BMI is calculated using the formula: weight(kg) / (height(m))². We categorize the result and display it with color-coding. Notice the input validation preventing unrealistic values."
+### 4.3 Profile Management
+- Age, gender, height, weight
+- Fitness level tracking
+- Real-time BMI updates
 
----
+### 4.4 Goal Setting
+- Custom goals with targets
+- Due date tracking
+- Progress monitoring
+- Full CRUD operations
 
-### Feature 3: Goal Setting
-**Flow**: `GoalsController.java` → `DatabaseManager.saveGoal()`
+### 4.5 Workout Management
+- **Dual-tab interface**:
+  - Workout Plans: Design schedules
+  - Daily Log: Track exercises (sets/reps/weight)
+- Dashboard integration
 
-**Features**:
-- Create goals (Weight Loss, Muscle Gain, Run Distance, etc.)
-- Set target values, units, and target dates
-- Track goal status (active/completed)
-- Delete goals with confirmation
-- TableView displays all user goals
+### 4.6 Progress Tracking
+- Interactive weight chart
+- Statistics dashboard
+- Historical data visualization
 
-**Demo**:
-- Add a new fitness goal
-- Show TableView with all user goals
-- Calculate days remaining: `Goal.getDaysRemaining()`
-- Delete a goal with confirmation dialog
-
-### Talking Points:
-> "Goals use a TableView to display all user objectives. When adding a goal, we save it to the database and reload all data to ensure UI consistency. The getDaysRemaining() method calculates the difference between today and the target date using Java's LocalDate API."
-
----
-
-### Feature 4: Workout Management (Unified Interface)
-**Flow**: `WorkoutPlansController.java` → `DatabaseManager` → **TabPane Navigation**
-
-**Unified Workouts Screen with Two Tabs**:
-
-#### **Workout Plans Tab**:
-- Create and manage workout plans
-- Plan details:
-  - Name, description
-  - Difficulty level (Beginner, Intermediate, Advanced, Expert)
-  - Duration in weeks
-  - Target goals
-- View all workout plans in TableView
-- Delete plans with confirmation
-- Database-backed persistence
-
-#### **Workout Logs Tab**:
-- **Log individual workout sessions**:
-  - Exercise name (TextField input)
-  - Sets, reps, weight used
-  - Date selection (DatePicker)
-- **View complete workout history** in TableView
-- **CRUD Operations**:
-  - Add new workout entries
-  - Delete selected entries
-  - Clear all workout logs
-- **Dashboard Integration**: Today's workouts displayed on main dashboard
-- Automatic filtering by user ID
-- Real-time table updates after operations
-
-**Demo**:
-- Show TabPane with "Workout Plans" and "Workout Logs" tabs
-- **Plans Tab**: Create a new workout plan, view in table, delete a plan
-- **Logs Tab**: 
-  - Add a workout entry (exercise name, sets, reps, weight, date)
-  - Show entry appears in table
-  - Navigate to Dashboard → See today's workout in "Today's Exercises" table
-  - Return to Workouts → Delete a log entry
-  - Demonstrate "Clear All Logs" functionality
-- Console output shows:
-  - `✓ Workout plan saved with ID: X`
-  - `✓ Workout log saved with ID: Y`
-  - `✓ Workout log deleted successfully`
-
-### Talking Points:
-> "The Workouts screen uses a TabPane to unify workout planning and logging in one interface. Users can design workout plans in the Plans tab, then track actual workout sessions in the Logs tab. The logged workouts are integrated with the Dashboard - you can see today's exercises right on the main screen. This gives users a quick overview of their daily activity without navigating away from the dashboard."
+### 4.7 Food Logging
+- Nutrition tracking (calories, macros)
+- Daily totals calculation
+- **Undo/Redo** functionality
+- Date filtering
 
 ---
 
-### Feature 5: Progress Tracking with Dashboard Integration
-**Flow**: `ProgressController.java` → `DatabaseManager.getWeightHistory()` → **Dashboard LineChart**
-
-**Features**:
-- **Weight tracking with professional LineChart visualization**:
-  - Interactive JavaFX LineChart with white background
-  - Clear gray border (#cccccc, 2px) for visual distinction
-  - Chart height: 320px for optimal data display
-  - All text elements visible in black (title, axis labels, tick labels)
-  - Bold axis labels for better readability
-  - Legend with white background and border
-  - Automatic chart updates on data changes
-- **Statistics Dashboard**:
-  - Current weight (most recent entry)
-  - Starting weight (earliest entry)
-  - Weight change (kg and percentage)
-  - Status indicator (weight loss/gain/maintaining)
-- **Weight History Table**: View all entries with date and weight
-- Add/delete weight entries
-- **Dashboard Integration**: Progress chart prominently displayed on main dashboard
-  - Distinct white container with rounded corners
-  - Chart title: "Weight Progress Over Time"
-  - Y-axis label: "Weight (kg)" in bold black (fully visible)
-  - X-axis label: "Date" in bold black
-  - Professional appearance ready for presentations
-- Date-based sorting (newest first)
-- Database persistence and reload
-
-**Demo**:
-- Navigate to "Track Progress"
-- Show LineChart with professional styling (white background, clear borders)
-- Display statistics panel (current: 70.5kg, starting: 75.0kg, change: -4.5kg / -6%)
-- Add new weight entry (e.g., 70.0kg for today)
-- **Chart updates in real-time** with all labels remaining visible
-- **Statistics recalculate automatically**
-- Return to **Dashboard** → See progress chart in distinct white box on main screen
-- Point out chart visibility improvements:
-  - White background makes chart stand out from gray dashboard
-  - Gray border clearly defines chart area
-  - All labels readable in black (title 16px, axis labels 14px bold, ticks 12px)
-  - Y-axis "Weight (kg)" fully visible with proper padding
-- Delete a weight entry → Chart updates immediately with styling preserved
-- Console shows:
-  - `✓ Loaded progress chart with 3 data points`
-  - `✓ Weight history saved with ID: X`
-  - `✓ Weight history deleted successfully`
-
-### Talking Points:
-> "Progress tracking uses JavaFX's LineChart to visualize weight changes over time. The chart has been professionally styled with a white background and gray border, making it stand out clearly on the dashboard. All text elements—title, axis labels, and tick labels—are now visible in black with appropriate font sizes and bold styling for readability. The Y-axis label 'Weight (kg)' is fully visible thanks to proper padding adjustments. The chart integrates seamlessly with the Dashboard at 320px height, providing users with immediate visual feedback on their progress trends without navigating away from the main screen. We calculate statistics like total weight change and percentage loss/gain using the earliest and most recent entries. The data is sorted DESC by date, ensuring the latest entry is always at index 0."
-
----
-
-### Feature 6: Food Logging
-**Flow**: `ProgressController.java` → `DatabaseManager.getWeightHistory()`
-
-**Features**:
-- Weight tracking with LineChart visualization
-- Add/delete weight entries
-- Statistics (current weight, starting weight, weight change)
-- BMI trends over time
-- Date-based sorting (newest first)
-
-**Demo**:
-- Show weight chart with JavaFX LineChart
-- Add new weight entry
-- Display weight loss/gain statistics
-- Demonstrate chart updates in real-time
-
-### Talking Points:
-> "Progress tracking uses JavaFX's LineChart to visualize weight over time. The chart automatically updates when new data is added. We calculate statistics like total weight change and BMI trends. Notice how the data is sorted DESC by date, so index 0 is always the newest entry."
-
----
-
-### Feature 5: Food Logging
-**Flow**: `FoodLogController.java` → `DatabaseManager.saveFoodLog()`
-
-**Features**:
-- Log daily meals (food name, calories, macros)
-- Date-based filtering
-- Daily nutrition totals (calories, protein, carbs, fats)
-- Delete food entries
-- **Command Pattern**: Undo/Redo functionality
-
-**Demo**:
-- Log a meal with nutrition info
-- Show daily totals calculation
-- Filter by specific date
-- Demonstrate Undo/Redo with Command pattern
-
-### Talking Points:
-> "Food logging implements the Command pattern for undo/redo functionality. Each add or delete operation is wrapped in a Command object and pushed onto our CommandHistory stack. This allows users to undo mistakes without permanently deleting data."
-
----
-
-## 5. **Build & Run Process** (5 minutes)
-
-### Maven Commands:
-````bash
-# Clean and build
-mvn clean install
-
-# Run application
-mvn javafx:run
-
-# Compile only
-mvn compile
-
-# Run tests
-mvn test
-
-# Package as JAR
-mvn package
-````
-
-### Deep Dive:
-- Explain Maven lifecycle: validate → compile → test → package
-- Show [`target/`](../target/) folder contents after build
-- Demonstrate console output with symbols (✓ success, ✗ error, ℹ info)
-- Show compiled `.class` files and JAR creation
-
-### Talking Points:
-> "Maven handles our entire build process. The 'mvn clean install' command cleans previous builds, compiles our code, runs tests, and installs the artifact locally. JavaFX is added as a dependency, and Maven downloads all required libraries automatically."
-
----
-
-## 6. **Key Code Patterns** (5 minutes)
-
-### Pattern 1: Singleton Session Management
-````java
-public static SessionManager getInstance() {
-    if (instance == null) {
-        instance = new SessionManager();
-    }
-    return instance;
-}
-````
-
-**Why**: Ensures only one instance of SessionManager exists globally
-
----
-
-### Pattern 2: Scene Navigation
-````java
-public static void switchScene(Event event, String fxmlFile) throws IOException {
-    Parent root = FXMLLoader.load(
-        SceneSwitcher.class.getResource("/com/fittrack/view/" + fxmlFile)
-    );
-    Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-    stage.setScene(new Scene(root));
-}
-````
-
-**Why**: Centralized navigation reduces code duplication and handles both ActionEvent and MouseEvent
-
----
-
-### Pattern 3: Database CRUD Operations
-````java
-public boolean saveGoal(Goal goal) {
-    String sql = "INSERT INTO goals(...) VALUES(?,?,?,?,?,?)";
-    try (Connection conn = connect();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
-        // Set parameters and execute
-        int rowsAffected = pstmt.executeUpdate();
-        
-        // SQLite-specific: get auto-generated ID
-        if (rowsAffected > 0) {
-            try (Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
-                if (rs.next()) {
-                    goal.goalId = rs.getInt(1);
-                }
-            }
-        }
-        return rowsAffected > 0;
-    } catch (SQLException e) {
-        System.err.println("✗ Error saving goal: " + e.getMessage());
-        return false;
-    }
-}
-````
-
-**Why**: Prepared statements prevent SQL injection, try-with-resources ensures proper cleanup
-
----
-
-### Pattern 4: Command Pattern (Undo/Redo)
-````java
-public interface Command {
-    void execute();
-    void undo();
-}
-
-public class AddFoodLogCommand implements Command {
-    private FoodLog foodLog;
-    
-    @Override
-    public void execute() {
-        DatabaseManager.saveFoodLog(foodLog);
-    }
-    
-    @Override
-    public void undo() {
-        DatabaseManager.deleteFoodLog(foodLog.logId);
-    }
-}
-````
-
-**Why**: Encapsulates actions as objects, enabling undo/redo functionality
-
-### Talking Points:
-> "We use several design patterns throughout the application. The Singleton pattern ensures a single SessionManager instance. Our Command pattern implementation allows users to undo food log entries. The database layer uses prepared statements exclusively to prevent SQL injection attacks."
-
----
-
-## 7. **Evolution: MySQL to SQLite** (3 minutes)
-
-### Show the Transition:
-
-**Before (MySQL)**:
-- Required MySQL server installation
-- Complex configuration (username, password, port)
-- Network overhead
-- Not portable
-
-**After (SQLite)**:
-- Zero configuration
-- Single file database (`fittrack.db`)
-- Direct file access (faster)
-- Completely portable
-
-### Code Changes:
-````java
-// MySQL (OLD)
-DB_URL = "jdbc:mysql://localhost:3306/fittrack_db"
-DB_USER = "fittrack_admin"
-DB_PASSWORD = "mySQL"
-
-// SQLite (NEW)
-DB_FILE = "fittrack.db"
-DB_URL = "jdbc:sqlite:" + DB_FILE
-// No username/password needed!
-````
-
-### Syntax Changes:
-````sql
--- MySQL
-INT AUTO_INCREMENT
-VARCHAR(50)
-DOUBLE
-
--- SQLite
-INTEGER AUTOINCREMENT
-TEXT
-REAL
-````
-
-### Talking Points:
-> "We migrated from MySQL to SQLite for better portability. SQLite requires zero configuration and stores everything in a single file. This makes deployment and backup trivial. The migration required updating SQL syntax and changing how we retrieve auto-generated IDs."
-
-**Reference**: [DATABASE_MIGRATION_SUMMARY.md](../DATABASE_MIGRATION_SUMMARY.md)
-
----
-
-## 8. **Security Features** (3 minutes)
-
-### Password Security:
-````java
-// Registration - Hash password with BCrypt
-String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-
-// Login - Verify password
-if (BCrypt.checkpw(password, storedHash)) {
-    // Authentication successful
-}
-````
-
-**Why BCrypt**:
-- Industry-standard algorithm
-- Automatic salt generation
-- Configurable work factor (future-proof)
-- Prevents rainbow table attacks
-
----
-
-### Input Validation:
-````java
-// SQL Injection Prevention
-String sql = "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)";
-PreparedStatement pstmt = conn.prepareStatement(sql);
-pstmt.setString(1, user.username);  // Parameterized query
-pstmt.setString(2, user.email);
-pstmt.setString(3, hashedPassword);
-````
-
----
-
-### Session Management:
-- User session stored in Singleton
-- Session cleared on logout
-- Centralized access control
-
-### Talking Points:
-> "Security is critical. We never store plain-text passwords - everything is hashed with BCrypt. We use prepared statements exclusively to prevent SQL injection. The SessionManager controls access to user data and is cleared on logout."
-
----
-
-## 9. **Error Handling** (3 minutes)
-
-### Database Errors:
-````java
-catch (SQLException e) {
-    System.err.println("✗ Error: " + e.getMessage());
-    System.err.println("SQL State: " + e.getSQLState());
-    System.err.println("Error Code: " + e.getErrorCode());
-    e.printStackTrace();
-    return false;
-}
-````
-
-### Form Validation:
-- Empty field checks
-- Format validation (email, numbers)
-- Range validation (age 10-120, height 50-300cm)
-- User-friendly error messages with color coding
-
-### Console Symbols:
-- ✓ = Success
-- ✗ = Error
-- ℹ = Info
-- 🔍 = Debug
-
-### Talking Points:
-> "We use consistent error handling throughout. Database errors are caught, logged with detailed information, and return false to indicate failure. Form validation provides immediate user feedback with color-coded messages."
-
----
-
-## 10. **Testing & Quality** (3 minutes)
-
-### Testing Checklist:
-Reference [TESTING_CHECKLIST.md](../TESTING_CHECKLIST.md):
-- ✅ User authentication flow
-- ✅ Profile CRUD operations
-- ✅ Goal management
-- ✅ Progress tracking
-- ✅ Food logging
-- ✅ Dashboard workout display (today's exercises)
-- ✅ Navigation between all screens
-- ✅ Logout functionality
-- ✅ Data persistence after restart
-
-### Code Quality:
-- **JavaDoc comments** on all public methods
-- **Consistent naming** conventions
-  - Controllers: `handleXxxButtonAction()`
-  - Database: `saveXxx()`, `getXxx()`, `deleteXxx()`
-- **DRY principle**: Helper methods (`showError()`, `showSuccess()`)
-- **Immutable variables**: `final` keyword usage
-
-### Talking Points:
-> "We maintain high code quality with JavaDoc documentation, consistent naming conventions, and the DRY principle. Our testing checklist ensures all features work correctly and data persists across application restarts."
-
----
-
-## 11. **Challenges & Solutions** (3 minutes)
-
-### Challenge 1: SQLite `getGeneratedKeys()` Issue
-**Problem**: SQLite JDBC driver doesn't support `Statement.RETURN_GENERATED_KEYS`  
-**Solution**: Use `SELECT last_insert_rowid()` instead  
-**Reference**: [DATA_PERSISTENCE_FIXED.md](../DATA_PERSISTENCE_FIXED.md)
-
-````java
-// Solution
-try (Statement stmt = conn.createStatement();
-     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
-    if (rs.next()) {
-        goal.goalId = rs.getInt(1);
-    }
-}
-````
-
----
-
-### Challenge 2: Data Synchronization
-**Problem**: UI out of sync with database after save/delete  
-**Solution**: Always reload from database (single source of truth)  
-**Reference**: [LOGIC_ERRORS_ANALYSIS.md](../LOGIC_ERRORS_ANALYSIS.md)
-
-````java
-// Solution
-dbManager.saveGoal(goal);
-loadUserGoals();  // Reload from database
-````
-
----
-
-### Challenge 3: Progress Stats Calculation
-**Problem**: Wrong weight shown as "current" due to DESC ordering  
-**Solution**: Index 0 is newest (DESC order), last index is oldest  
-
-````java
-// Solution
-WeightHistory latest = weightHistoryList.get(0);  // Newest
-WeightHistory earliest = weightHistoryList.get(size - 1);  // Oldest
-````
-
-### Talking Points:
-> "We encountered several technical challenges. The SQLite migration required changing how we retrieve auto-generated IDs. We also had to ensure data synchronization by always reloading from the database after modifications. Understanding SQL ordering was critical for accurate statistics."
-
----
-
-## 12. **Documentation** (2 minutes)
-
-### Available Documentation:
-- **[README.md](../README.md)** - Comprehensive project overview with appendices
-  - Core features and architecture
-  - Setup and installation instructions
-  - Troubleshooting guide
-  - **Appendix A:** Database Migration (MySQL → SQLite)
-  - **Appendix B:** Data Persistence Implementation
-  - **Appendix C:** Code Optimizations
-  - **Appendix D:** SQLite vs MySQL Reference
-  - **Appendix E:** Database Management
-- **[QUICKSTART.md](../QUICKSTART.md)** - Getting started guide
-- **[SETUP_FOR_GROUPMATES.md](../SETUP_FOR_GROUPMATES.md)** - Team setup instructions
-- **[TESTING_CHECKLIST.md](../TESTING_CHECKLIST.md)** - Complete testing guide
-- **[USE OF AI DISCLOSURE.md](../USE%20OF%20AI%20DISCLOSURE.md)** - AI usage transparency with technical details
-- **[TODO.md](../TODO.md)** - Future enhancements
-
-### Consolidated Technical Documentation:
-
-All technical details from these documents are now compiled into the main documentation:
-- ✅ **DATABASE_MIGRATION_SUMMARY.md** → README Appendix A
-- ✅ **DATA_PERSISTENCE_FIXED.md** → README Appendix B
-- ✅ **OPTIMIZATION_SUMMARY.md** → README Appendix C
-- ✅ **LOGIC_ERRORS_ANALYSIS.md** → USE OF AI DISCLOSURE
-
-### Talking Points:
-> "We maintain comprehensive, consolidated documentation. All technical details about database migration, data persistence fixes, and code optimizations are compiled into appendices in the README. This makes it easier to find information without searching through multiple files. Our USE OF AI DISCLOSURE document includes detailed technical context about all fixes and improvements."
-
----
-
-## 13. **Technical Deep Dive: Database Migration** (5 minutes)
-
-### Migration Challenge Details:
-
-**Why We Migrated:**
-- MySQL required server installation and configuration
-- Team members had setup difficulties
-- Deployment complexity for end users
-- SQLite provides zero-configuration, single-file portability
-
-**Technical Changes Made:**
-
-1. **Dependency Updates (pom.xml):**
-```xml
-<!-- REMOVED -->
-<dependency>
-    <groupId>com.mysql</groupId>
-    <artifactId>mysql-connector-j</artifactId>
-</dependency>
-
-<!-- ADDED -->
-<dependency>
-    <groupId>org.xerial</groupId>
-    <artifactId>sqlite-jdbc</artifactId>
-    <version>3.44.1.0</version>
-</dependency>
+## 5. Technical Highlights (5-7 min)
+
+### Code Quality
+- Enterprise-grade SLF4J logging (replaced 100+ print statements)
+- Comprehensive error handling
+- Input validation across all forms
+- Confirmation dialogs for destructive actions
+
+### Testing
+- JUnit 5 test suites
+- Mockito for dependency mocking
+- 38/40 tests passing (95%)
+- Integration tests for DatabaseManager
+
+### Build & Deployment
+```powershell
+mvn clean install    # Build
+mvn javafx:run       # Run
+mvn test             # Test
+mvn package          # Create JAR
 ```
 
-2. **Connection String Changes:**
-```java
-// MySQL (Before)
-DB_URL = "jdbc:mysql://localhost:3306/fittrack_db"
-DB_USER = "fittrack_admin"
-DB_PASSWORD = "mySQL"
+---
 
-// SQLite (After)
-DB_FILE = "fittrack.db"
-DB_URL = "jdbc:sqlite:" + DB_FILE
-// No username/password needed!
-```
+## 6. Live Demo Flow (10-15 min)
 
-3. **SQL Syntax Conversion:**
-```sql
--- MySQL syntax
-CREATE TABLE users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    age DOUBLE
-) ENGINE=InnoDB;
+### Step 1: Initial Launch
+1. Run application
+2. Show login screen
+3. Register new account
 
--- SQLite syntax
-CREATE TABLE IF NOT EXISTS users (
-    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL UNIQUE,
-    age REAL
-);
-```
+### Step 2: Profile Setup
+1. Navigate to Profile
+2. Enter age, height, weight
+3. Show BMI calculation
 
-**Critical Fix: Auto-Generated IDs**
+### Step 3: Goal Creation
+1. Create weight loss goal
+2. Set target and date
+3. Show in table
 
-The most challenging issue was retrieving auto-generated primary keys:
+### Step 4: Workout Tracking
+1. Create workout plan
+2. Log today's exercises
+3. Show on dashboard
 
-```java
-// MySQL approach (doesn't work with SQLite)
-PreparedStatement pstmt = conn.prepareStatement(sql, 
-    Statement.RETURN_GENERATED_KEYS);
-pstmt.executeUpdate();
-ResultSet keys = pstmt.getGeneratedKeys(); // ❌ SQLiteException
+### Step 5: Progress Tracking
+1. Add weight entry
+2. Show chart update
+3. Display statistics
 
-// SQLite solution
-PreparedStatement pstmt = conn.prepareStatement(sql);
-pstmt.executeUpdate();
-try (Statement stmt = conn.createStatement();
-     ResultSet rs = stmt.executeQuery("SELECT last_insert_rowid()")) {
-    if (rs.next()) {
-        generatedId = rs.getInt(1);
-    }
-}
-```
+### Step 6: Food Logging
+1. Log meal with nutrition
+2. Show daily totals
+3. Demonstrate undo/redo
 
-**Impact:**
-- Applied to 5 save methods in DatabaseManager
-- Fixed data persistence across all features
-- Ensured UI displays correct IDs for edit/delete operations
-
-### Talking Points:
-> "The database migration was our biggest technical challenge. We had to convert all SQL syntax from MySQL to SQLite, update connection handling, and solve the auto-generated ID retrieval issue. The solution using `last_insert_rowid()` required updating every save method in DatabaseManager. This fixed all data persistence problems and made the application truly portable."
+### Step 7: Data Persistence
+1. Close application
+2. Reopen
+3. Show all data persisted
 
 ---
 
-## 14. **Technical Deep Dive: Data Persistence Architecture** (3 minutes)
+## 7. Challenges & Solutions (3-5 min)
 
-### Data Flow Pattern:
+### Challenge 1: MySQL → SQLite Migration
+- **Issue**: Server dependency
+- **Solution**: Migrated to SQLite for portability
+- **Result**: Zero-configuration deployment
 
-```
-User Action → Input Validation → Database Save → 
-Get Auto-Generated ID → Reload from Database → 
-Update UI with Fresh Data → User Sees Changes
-```
+### Challenge 2: Missing Workout Log UI
+- **Issue**: Controller had methods, but FXML missing components
+- **Solution**: Added TabPane with dual-tab interface
+- **Result**: Full workout planning and logging
 
-### Why This Pattern?
+### Challenge 3: Ad-hoc Logging
+- **Issue**: 100+ System.out.println statements
+- **Solution**: Migrated to SLF4J with proper log levels
+- **Result**: Production-ready logging
 
-**Problem:** UI state drift from database state
-- Users could add/delete items
-- UI showed changes but with incorrect IDs
-- Editing or deleting would fail due to ID mismatch
-
-**Solution:** Database as single source of truth
-- After every save/delete, reload ALL data from database
-- UI always reflects actual database state
-- No manual ID tracking needed
-- Prevents inconsistencies
-
-### Controller Implementation Example:
-
-```java
-@FXML
-private void handleAddWeightButtonAction() {
-    // 1. Validate input
-    if (weightField.getText().isEmpty()) {
-        return;
-    }
-    
-    // 2. Save to database
-    WeightHistory entry = new WeightHistory(
-        currentUser.getUserId(),
-        weight,
-        date
-    );
-    dbManager.saveWeightHistory(entry); // Returns generated ID
-    
-    // 3. Reload from database (CRITICAL!)
-    loadWeightHistory(); // Fetches ALL weight entries fresh
-    
-    // 4. Update chart with fresh data
-    updateChart();
-    
-    // 5. Clear form
-    weightField.clear();
-}
-```
-
-**Benefits:**
-- ✅ Data always consistent between UI and database
-- ✅ No manual ID management
-- ✅ Survives app restarts
-- ✅ Simplifies debugging
-
-### Talking Points:
-> "Our data persistence architecture follows a strict pattern: validate, save, reload, display. After every database operation, we reload all data from the database rather than trying to manually update the UI. This 'database as single source of truth' approach prevents inconsistencies and ensures data survives app restarts. It's slightly less efficient but much more reliable for a desktop application."
+### Challenge 4: Data Persistence
+- **Issue**: Some CRUD operations not saving
+- **Solution**: Fixed SQL queries and error handling
+- **Result**: Verified all operations with console logs
 
 ---
 
-## 15. **Future Enhancements** (2 minutes)
+## 8. Future Enhancements (2-3 min)
 
-### Planned Features:
-- Exercise library with search functionality
-- Workout logging with exercise tracking
-- Advanced charts (calories, macros over time)
-- Export/import data (CSV, JSON)
-- Meal planning feature
-- Enhanced CSS styling
-- Profile pictures
-- Dark mode theme
+### Potential Features
+- Exercise library with animations
+- Nutrition database API integration
+- Export data (CSV/PDF reports)
+- Multi-user profiles
+- Cloud sync
+- Mobile companion app
 
-### Technical Improvements:
-- Connection pooling for database
-- Batch operations for bulk inserts
-- Caching frequently accessed data
-- Automated testing framework
-
-### Talking Points:
-> "We have an extensive roadmap of future features. Next priorities include an exercise library, workout logging, and advanced analytics. We're also planning data export/import functionality and theme customization. On the technical side, we could implement connection pooling and caching for better performance, though the current architecture is sufficient for desktop use."
+### Technical Improvements
+- Increase test coverage to 100%
+- Add integration tests for UI
+- Implement caching layer
+- Add data export/import
+- Create installer packages
 
 ---
 
-## 16. **Q&A Preparation**
+## 9. Q&A Preparation
 
-### Common Questions:
+### Common Questions
 
-**Q: Why JavaFX over Swing?**  
-A: JavaFX offers modern UI components, Scene Builder for visual design, FXML for MVC separation, better CSS support, and built-in animations. It's the future of Java desktop applications.
+**Q: Why JavaFX instead of web?**
+A: Desktop app provides better performance, offline access, and no server hosting costs. JavaFX offers rich UI components.
 
-**Q: How does the database connection work?**  
-A: We use JDBC with `DatabaseManager.connect()` that establishes an SQLite connection. Each operation opens a connection, executes, and closes it using try-with-resources for automatic cleanup.
+**Q: Why SQLite over MySQL?**
+A: Zero configuration, portable, sufficient for single-user desktop app. No server setup required.
 
-**Q: How do you handle concurrent users?**  
-A: Currently a single-user desktop app. SQLite handles file locking automatically. For multi-user, we'd need to migrate to a server-based database like PostgreSQL and implement user session tokens.
+**Q: How is security handled?**
+A: BCrypt password hashing with salt. Passwords never stored in plain text. Session management prevents unauthorized access.
 
-**Q: What about password recovery?**  
-A: Future feature - would require email integration (JavaMail API) and password reset tokens stored in database with expiration times.
+**Q: Test coverage?**
+A: 95% (38/40 tests). Covers model logic, database operations, and business rules.
 
-**Q: Can this scale to web/mobile?**  
-A: Yes! The business logic and database layer are reusable. We'd need to:
-- Create a REST API layer (Spring Boot)
-- Build web frontend (React/Vue)
-- Build mobile apps (React Native/Flutter)
-- Migrate to server-based database
-
-**Q: How do you handle NULL values in the database?**  
-A: We explicitly check for NULL before setting parameters:
-````java
-if (user.age != null) {
-    pstmt.setInt(1, user.age);
-} else {
-    pstmt.setNull(1, java.sql.Types.INTEGER);
-}
-````
-
-**Q: Why Command pattern for food logging only?**  
-A: Proof of concept. Food logging has frequent add/delete operations where users might make mistakes. We can extend this to other features in the future.
-
-**Q: How do you prevent SQL injection?**  
-A: We use prepared statements exclusively throughout the entire application. Never string concatenation for SQL queries.
+**Q: How long to build?**
+A: ~6 weeks with iterative development, testing, and optimization.
 
 ---
 
-## **Live Demo Script**
+## 10. Presentation Tips
 
-### Setup (Before Presentation):
-1. ✅ Ensure application builds successfully: `mvn clean install`
-2. ✅ Database has sample data (or start fresh)
-3. ✅ Console visible for debug output
-4. ✅ IDE open to show code examples
-5. ✅ Have DB Browser for SQLite ready (optional)
+### Do's
+✅ Show live demo, not just slides
+✅ Highlight design patterns and architecture
+✅ Explain technical decisions and trade-offs
+✅ Demonstrate error handling and edge cases
+✅ Show test execution
+✅ Reference documentation files
 
-### Demo Flow (15 minutes):
+### Don'ts
+❌ Read code line by line
+❌ Skip error scenarios
+❌ Ignore questions
+❌ Rush through demo
+❌ Forget to show data persistence
 
-#### 1. **Login** (2 min)
-- Show login screen
-- Enter credentials
-- **Highlight**: Console shows "✓ Database connected"
-- **Highlight**: BCrypt password verification in console
-- Navigate to Dashboard
-
-#### 2. **Dashboard** (1 min)
-- Show welcome message with username
-- Explain navigation buttons
-- Point out BMI calculation area
-- **Highlight**: Today's Workout Exercises table
-  - Shows exercises logged for current day
-  - Displays exercise name, sets, reps, weight used
-  - Real-time filtering by today's date
-  - Empty state message if no workouts logged today
-
-#### 3. **Profile** (3 min)
-- Click "My Profile"
-- Fill in age, gender, height, weight, fitness level
-- Click "Save"
-- **Highlight**: Console shows "✓ Profile updated"
-- Return to Dashboard
-- **Highlight**: BMI now calculated and displayed
-
-#### 4. **Goals** (3 min)
-- Click "Set Goals"
-- Add goal: "Weight Loss", target "65 kg", date 30 days from now
-- **Highlight**: Goal appears in table
-- **Highlight**: Console shows "✓ Goal saved with ID: X"
-- Select goal and delete
-- **Highlight**: Confirmation dialog
-- **Highlight**: Console shows "✓ Goal deleted"
-
-#### 5. **Progress** (3 min)
-- Click "Track Progress"
-- Add weight entry: "70.5 kg", today
-- **Highlight**: Chart updates immediately
-- **Highlight**: Stats show current weight, starting weight
-- Add another entry from yesterday: "71.0 kg"
-- **Highlight**: Chart shows trend line
-- **Highlight**: Weight change calculation
-
-#### 6. **Food Log** (2 min)
-- Click "Food Log"
-- Add food: "Chicken Breast", "165 cal", "31g protein", "0g carbs", "3.6g fat"
-- **Highlight**: Daily totals update
-- **Highlight**: Command added to history
-- Click "Undo"
-- **Highlight**: Entry removed
-- Click "Redo"
-- **Highlight**: Entry restored
-
-#### 7. **Logout** (1 min)
-- Click "Logout"
-- Return to login screen
-- **Highlight**: Session cleared
-
-### Show Database (Optional):
-- Open DB Browser for SQLite
-- Show `fittrack.db` file
-- Browse tables and data
-- Show foreign key relationships
-
-### Backup Plan:
-- **Screenshots** prepared in case of demo failure
-- **Video recording** as fallback
-- **Mock data mode** if database issues
-- **Slide deck** with key points
+### Time Management
+- Keep overview brief (5 min max)
+- Prioritize live demo (15 min)
+- Save time for Q&A (5-10 min)
+- Have backup slides if demo fails
 
 ---
 
-## **Presentation Materials Checklist**
+## File References
 
-### Required Materials:
-- [ ] Laptop with project ready to run
-- [ ] Projector/screen connection tested
-- [ ] Backup laptop (if available)
-- [ ] USB drive with project backup
-
-### Preparation:
-- [ ] Architecture diagram (created in draw.io or Lucidchart)
-- [ ] ER diagram for database schema
-- [ ] Screenshots of each screen
-- [ ] Code snippets (syntax highlighted)
-- [ ] Build output logs
-- [ ] Demo credentials documented
-- [ ] Links to all documentation files
-
-### Visual Aids:
-- [ ] Design pattern diagrams
-- [ ] Data flow diagrams
-- [ ] Navigation flow chart
-- [ ] Technology stack visual
+- **README.md** - Quick overview
+- **SETUP.md** - Complete setup guide
+- **OPTIMIZATION_SUMMARY.md** - Recent improvements
+- **USE OF AI DISCLOSURE.md** - AI usage transparency
 
 ---
 
-## **Tips for Presenters**
-
-### ✅ **DO:**
-- **Practice the demo** 3-5 times beforehand
-- **Explain the "why"** behind design decisions
-- **Show actual code execution** in IDE
-- **Use console logs** to demonstrate data flow
-- **Highlight unique features** (BMI calc, BCrypt, Command pattern)
-- **Reference documentation** files
-- **Engage the audience** with questions
-- **Show enthusiasm** about your work
-- **Prepare for technical questions**
-- **Have code snippets** ready to explain
-
-### ❌ **DON'T:**
-- **Read code line-by-line** (boring!)
-- **Skip over error handling** (important!)
-- **Assume technical knowledge** (explain concepts)
-- **Rush through the demo** (take your time)
-- **Ignore audience questions** (engage!)
-- **Use jargon without explanation**
-- **Apologize for code** (be confident!)
-- **Go over time limit**
-- **Forget to credit AI assistance** (be transparent)
-
----
-
-## **Presentation Sections Timing Guide**
-
-| Section | Duration | Priority |
-|---------|----------|----------|
-| Project Overview | 3-5 min | HIGH |
-| Architecture | 5-7 min | HIGH |
-| Database Design | 5 min | MEDIUM |
-| Core Features Demo | 10-15 min | HIGH |
-| Build & Run | 5 min | MEDIUM |
-| Code Patterns | 5 min | HIGH |
-| MySQL to SQLite | 3 min | MEDIUM |
-| Security | 3 min | HIGH |
-| Error Handling | 3 min | MEDIUM |
-| Testing | 3 min | MEDIUM |
-| Challenges | 3 min | HIGH |
-| Documentation | 2 min | LOW |
-| Future Enhancements | 2 min | LOW |
-| Q&A | 10-15 min | HIGH |
-
-**Total:** 45-60 minutes (including Q&A)
-
----
-
-## **Technical Deep Dive Topics** (If Time Permits)
-
-### 1. JavaFX Event Handling
-- FXML `fx:id` binding
-- `@FXML` annotation
-- `initialize()` lifecycle method
-- Event propagation
-
-### 2. Database Transactions
-- ACID properties in SQLite
-- BEGIN, COMMIT, ROLLBACK
-- Isolation levels
-
-### 3. Java 8+ Features Used
-- Lambda expressions
-- Streams API
-- LocalDate/LocalDateTime
-- Optional<T>
-- Try-with-resources
-
-### 4. Maven Dependency Management
-- POM structure
-- Dependency scopes
-- Plugin configuration
-- Build lifecycle
-
----
-
-## **Conclusion**
-
-This presentation guide covers all major aspects of the FitTrack application with deep technical insights while remaining accessible to various audience levels. Adjust the depth and focus based on your specific audience and time constraints.
-
-**Key Takeaways for Audience:**
-1. ✅ Well-architected Java application using MVC pattern
-2. ✅ Proper security implementation (BCrypt, prepared statements)
-3. ✅ Multiple design patterns (Singleton, Command, DAO)
-4. ✅ Comprehensive error handling and logging
-5. ✅ Complete documentation and testing
-6. ✅ Portable, zero-configuration deployment
-
-**Remember**: Your project demonstrates professional software development practices! 🚀
-
----
-
-**Document Version:** 1.1  
-**Last Updated:** November 13, 2025  
-**Created By:** FitTrack Development Team
-
----
-
-*Good luck with your presentation!* 🎯
+**Presentation Date**: _____________
+**Presenter(s)**: _____________
+**Estimated Audience**: _____________

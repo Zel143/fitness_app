@@ -93,3 +93,12 @@ Desktop.ini
 # Application specific
 /logs/
 /temp/
+
+# Documentation redundancy
+QUICKSTART.md
+SETUP_FOR_GROUPMATES.md
+TESTING_CHECKLIST.md
+TODO.md
+cleanup.ps1
+# Exclude all PDF files to avoid tracking binary documentation. If you need to version control user manuals or design documents in PDF format, remove this line or add exceptions.
+*.pdf
