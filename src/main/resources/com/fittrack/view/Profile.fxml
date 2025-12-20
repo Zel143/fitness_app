@@ -83,6 +83,7 @@
                 <!-- Buttons -->
                 <HBox spacing="15" alignment="CENTER">
                     <Button text="💾 Save Profile" styleClass="profile-button" onAction="#handleSaveButtonAction"/>
+                    <Button text="📤 Export Data" styleClass="profile-button" onAction="#handleExportButtonAction"/>
                     <Button text="🏠 Dashboard" styleClass="profile-button" onAction="#handleDashboardButtonAction"/>
                 </HBox>
             </VBox>

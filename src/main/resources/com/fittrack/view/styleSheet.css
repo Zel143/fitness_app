@@ -433,7 +433,8 @@
 
 .dashboard-square:hover {
     -fx-background-color: #34495e;
-    -fx-translate-y: -3;
+    /* JavaFX CSS doesn't support transitions directly.
+       Animations are handled in DashboardController.java */
 }
 
 /* Dashboard container background (image) */

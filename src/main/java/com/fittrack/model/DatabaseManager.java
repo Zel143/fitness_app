@@ -17,8 +17,8 @@ public class DatabaseManager {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
 
     // SQLite database file in the project folder
-    private static final String DB_FILE = "fittrack.db";
-    private static final String DB_URL = "jdbc:sqlite:" + DB_FILE;
+    private static final String DEFAULT_DB_FILE = "fittrack.db";
+    private final String dbUrl;
     
     // Static block to load SQLite JDBC driver
     static {
@@ -28,16 +28,30 @@ public class DatabaseManager {
             logger.error("SQLite JDBC driver not found!", e);
         }
     }
+
+    /**
+     * Default constructor uses the production database file.
+     */
+    public DatabaseManager() {
+        this("jdbc:sqlite:" + DEFAULT_DB_FILE);
+    }
+
+    /**
+     * Constructor for dependency injection (e.g., for testing).
+     * @param dbUrl The JDBC URL of the database to connect to.
+     */
+    public DatabaseManager(String dbUrl) {
+        this.dbUrl = dbUrl;
+    }
     
     /**
      * Establishes a connection to the SQLite database.
-     * Database file is stored in the project folder: fittrack.db
      */
     public Connection connect() {
         try {
-            // Connect to SQLite database in project folder
-            Connection conn = DriverManager.getConnection(DB_URL);
-            logger.info("✓ Database connected: {}", DB_FILE);
+            // Connect to SQLite database
+            Connection conn = DriverManager.getConnection(dbUrl);
+            logger.info("✓ Database connected: {}", dbUrl);
             return conn;
         } catch (SQLException e) {
             logger.error("✗ Database connection failed: {}", e.getMessage(), e);
