@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fittrack.model.DatabaseManager;
 import com.fittrack.model.User;
+import com.fittrack.util.DataExporter;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
 
@@ -16,6 +17,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
+import java.io.File;
 
 /**
  * ProfileController - Controller for the Profile.fxml view
@@ -157,6 +160,37 @@ public class ProfileController {
 
         } catch (NumberFormatException e) {
             showError("Please enter valid numbers for age, height, and weight.");
+        }
+    }
+
+    /**
+     * Handle the Export Data button click
+     */
+    @FXML
+    private void handleExportButtonAction(ActionEvent event) {
+        if (currentUser == null) {
+            showError("No user logged in.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Data");
+        fileChooser.setInitialFileName("fittrack_export_" + java.time.LocalDate.now() + ".csv");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+
+        // Get the stage from the event source
+        javafx.scene.Node source = (javafx.scene.Node) event.getSource();
+        javafx.stage.Stage stage = (javafx.stage.Stage) source.getScene().getWindow();
+
+        File file = fileChooser.showSaveDialog(stage);
+
+        if (file != null) {
+            DataExporter exporter = new DataExporter(dbManager);
+            if (exporter.exportUserData(currentUser, file)) {
+                showSuccess("Data exported successfully to " + file.getName());
+            } else {
+                showError("Failed to export data.");
+            }
         }
     }
 

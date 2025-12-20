@@ -27,7 +27,9 @@ class DatabaseManagerTest {
 
     @BeforeEach
     void setUp() {
-        dbManager = new DatabaseManager();
+        // Use a temporary database file for each test
+        String dbUrl = "jdbc:sqlite:" + tempDir.resolve("test_fittrack.db").toAbsolutePath();
+        dbManager = new DatabaseManager(dbUrl);
         dbManager.createTables();
     }
 

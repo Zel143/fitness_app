@@ -15,14 +15,19 @@ import com.fittrack.model.WorkoutLog;
 import com.fittrack.util.SceneSwitcher;
 import com.fittrack.util.SessionManager;
 
+import javafx.animation.ScaleTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 /**
  * DashboardController - Controller for the Dashboard.fxml view
@@ -57,6 +62,12 @@ public class DashboardController {
     @FXML
     private TableColumn<WorkoutLog, Double> weightColumn;
 
+    @FXML
+    private Button statsButton;
+
+    @FXML
+    private Button exercisesButton;
+
     private User currentUser;
     private final DatabaseManager dbManager = new DatabaseManager();
     private final ObservableList<WorkoutLog> todayWorkouts = FXCollections.observableArrayList();
@@ -66,6 +77,10 @@ public class DashboardController {
      */
     @FXML
     public void initialize() {
+        // Add hover animations
+        if (statsButton != null) addHoverAnimation(statsButton);
+        if (exercisesButton != null) addHoverAnimation(exercisesButton);
+
         // Get the logged-in user from SessionManager
         currentUser = SessionManager.getInstance().getLoggedInUser();
 
@@ -254,5 +269,25 @@ public class DashboardController {
         } catch (IOException ex) {
             logger.error("✗ Error loading {}", fxml, ex);
         }
+    }
+
+    /**
+     * Adds scale animation to buttons on hover
+     */
+    private void addHoverAnimation(Button button) {
+        ScaleTransition scaleIn = new ScaleTransition(Duration.millis(200), button);
+        scaleIn.setFromX(1.0);
+        scaleIn.setFromY(1.0);
+        scaleIn.setToX(1.05);
+        scaleIn.setToY(1.05);
+
+        ScaleTransition scaleOut = new ScaleTransition(Duration.millis(200), button);
+        scaleOut.setFromX(1.05);
+        scaleOut.setFromY(1.05);
+        scaleOut.setToX(1.0);
+        scaleOut.setToY(1.0);
+
+        button.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> scaleIn.play());
+        button.addEventHandler(MouseEvent.MOUSE_EXITED, e -> scaleOut.play());
     }
 }
